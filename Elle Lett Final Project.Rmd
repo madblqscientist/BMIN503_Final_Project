@@ -1,6 +1,8 @@
 ---
-title: "BMIN503/EPID600 Project Template"
+title: "Simulating Misclassification Error and Bias in Transgender Health Studies using Electronic Health Records and Administrative Claims Databases"
 author: "Elle Lett"
+header-includes:
+   - \usepackage{amsmath}
 output: 
   html_document:
     toc: false 
@@ -8,43 +10,75 @@ output:
     theme: paper 
     highlight: tango
 ---
-```{r set-options, echo=FALSE, cache=FALSE}
+```{r set-options, echo=FALSE, cache=FALSE,message=FALSE,warning=FALSE}
 options(width = 400)
+library(knitr)
+library(Hmisc)
 ```  
 
-**Note: This work has already been converted to a manuscript that is under review so DO NOT circulate**
-
 ### Overview
-THIS IS NEW
+
+
 
 **Background**: Electronic health records (EHRs) and administrative claims databases are increasingly being used to study the distribution of health outcomes among transgender individuals. However, gender identity is not comprehensively reported in these data sources so diagnosis codes are used as a proxy to identify transgender subgroups within the data. To date, no study has characterized the bias introduced by misclassification of gender identity based on this proxy metric.
 
 **Objective**:  The goal of this study is to estimate the bias introduced by misclassification of gender identity in estimates of health inequities among transgender individuals and multiply marginalized racial/ethnic subgroups. 
 
-**Data**: We use simulations to generate data subject to differential misclassification error related to gender identity and racial identity, and estimate the bias, mean squared error, and coverage probability for the observed odds ratios comparing transgender Whites to cisgender Whites and transgender Blacks to cisgender Whites. 
+**Data**: We use simulations to generate data subject to differential misclassification error related to gender identity and racial identity, and estimate the bias, mean squared error, and coverage probability for the observed odds ratios comparing the various groups.
 
-**Faculty Input**: I spoke with John Holmes who provided some input on how to visiualize the results, and Drs. Jaya Asyola and Nadia Dowshen who gave input on where to find information to parametrize the simulations. 
+**Faculty Input**: I spoke with John Holmes who provided some input on how to visiualize the results, and Drs. Jaya Asyola and Nadia Dowshen who gave input on what information to use parametrize the simulations. 
 
 ### Introduction 
 
   There is an extensive body of literature that documents the severe health inequities experienced by transgender individuals, or persons who identify with a gender that is different than the sex they were assigned at birth. These inequities include mental health disorders, such as suicidality, anxiety, depression, and ADHD, negative experiences of discrimination and victimization including healthcare discrimination, sexual violence, and psychosocial and behavioral health-related factors including behaviors associated with HIV and other STIs. The data underlying these studies are sourced from several settings: 1) small, site or regional cohorts,  2) national surveys that ascertained transgender identity and 3) electronic health records or large claims databases. The first data source has the benefit of being derived from studies that are designed to center the specific needs of transgender individuals and are more likely to assess outcomes relevant to this population with the appropriate granularity. However, these studies rarely include cisgender comparison groups excluding the possibility of obtaining within study estimates comparing the distribution of outcomes between cisgender and transgender groups to approximate the effect of transphobia on health outcomes.  The latter two data sources often contain both cisgender and transgender groups, thereby allowing association measures to be assessed across groups, or identification of causal estimates when appropriate measures of structural oppression are included. The third category is unique in that you can obtain granular data on specific health outcomes on nationally representative samples. 
 
-  All studies that have used EHR and claims databases to assess transgender health have used International Classification of Disease (ICD) diagnosis codes for gender dysphoria, occasionally augmented by other relevant diagnosis codes such as “endocrine disorder otherwise not specified” that are enriched in encounters with transgender individuals seeking care.18 These measures, particularly those for gender dysphoria are highly specific. It is unlikely that an individual who is not transgender would carry these diagnoses in their claims or EHR. However, it is unclear to what degree these algorithms are sensitive, and in fact it is reasonable to assume that they are not. Not all transgender individuals who are seeking medical care will be doing so specifically for gender affirmation, so they are less likely to carry the codes used in the algorithm for identifying transgender individuals. Therefore, these algorithms introduce differential misclassification error between cisgender and transgender individuals which has the potential to bias estimates of health inequities for transgender populations.  Additionally, a recent study showed that diagnosis code-based identification algorithms exhibit differential performance among racial/ethnic minority subgroups withing the transgender population This introduces additional differential misclassification in studies focusing on heath inequities faced by multiply marginalized racial/ethnic minority groups within the transgender community, for whom health inequities may be more severe.
-
-  To accurately interpret findings from transgender population health studies using EHR and claims, it is necessary to characterize the effect of differential misclassification error introduced by current algorithms used for identifying transgender individuals. To our knowledge, this study will be the first to estimate the bias due to misclassification error on measures of association between transgender identity and health outcomes. Additionally, our study will compare this bias within marginalized racial/ethnic subgroups of the transgender population. Our findings will provide a vital update to transgender population health that will inform future studies using EHR or claims data to study this vulnerable group. 
+  All studies that have used EHR and claims databases to assess transgender health have used International Classification of Disease (ICD) diagnosis codes for gender dysphoria, occasionally augmented by other relevant diagnosis codes such as “endocrine disorder otherwise not specified” that are enriched in encounters with transgender individuals seeking care. These measures, particularly those for gender dysphoria are highly specific. It is unlikely that an individual who is not transgender would carry these diagnoses in their claims or EHR. However, it is unclear to what degree these algorithms are sensitive, and in fact it is reasonable to assume that they are not. Not all transgender individuals who are seeking medical care will be doing so specifically for gender affirmation, so they are less likely to carry the codes used in the algorithm for identifying transgender individuals. Therefore, these algorithms introduce differential misclassification error between cisgender and transgender individuals which has the potential to bias estimates of health inequities for transgender populations.  To accurately interpret findings from transgender population health studies using EHR and claims, it is necessary to characterize the effect of differential misclassification error introduced by current algorithms used for identifying transgender individuals. 
 
   This study is interdisciplinary because it encompasses health services research and informatics by addressing a knowledge gap in using EHR and administrative claims data, engages statistics by simulating data and quantifying bias, and social epidemiology by focusing on population health for groups at the intersection of multiple marginalized identities. 
 
 ### Methods
-Simulation Rationale
-In our study we will simulate the effect of misclassification on the bias of estimated odds ratios (OR) measuring the association of a binary outcome with gender identity comparing cisgender individuals to transgender individuals, where, with some probability, transgender individuals are misclassified as cisgender. We will also consider scenarios in which the outcome and another demographic variable, race, are also associated with misclassification of transgender individuals. These scenarios area reasonable if an outcome decreases the likelihood that an individual will be seeking gender-related care such that, in the presence of this outcome, transgender individuals are not likely to carry ICD codes for gender dysphoria or related treatments, because they are being treated for other conditions. Similarly, given the documented differences in healthcare access between Black and White transgender individuals it is reasonable to assume that Black transgender individuals access gender-related care less than their White counterparts, so scenarios where race is associated with misclassification error are also reasonable. 4 These scenarios will allow us to estimate the bias due to misclassification error of transgender individuals in the context of estimating inequities across transgender and cisgender populations at intersections of different racial identities, and within transgender populations across substrata of racial identities. 
 
-**Data Generation Mechanism and Analysis**
+***Simulation Rationale***
 
-Figure 1 outlines the data generation mechanism for the simulations, and shows the models used at each step. In the first step, for individual i, gender and race are randomly selected from a Bernoulli distribution with a pre-specified probability. These variables, Gi and Bi, are 1 if the individual i is transgender or Black, respectively.  In the next step, conditional on gender and race, a binary outcome, Yi, is randomly drawn, based on a Bernoulli probability from a logit linear model that includes an interaction between gender and race, to account for modification between race and gender for the outcome. In the third step, a binary indicator for misclassification, Mi, conditional on gender, race, and the outcome, is drawn. In EHR- and claims- data based studies of transgender populations, all individuals are presumed to be cisgender unless they carry gender dysphoria diagnosis codes. Because these codes are specific to transgender individuals and cisgender individuals are unlikely to carry them, we assume that misclassification errors are one-way, such that transgender individuals may be misclassified as cisgender, but the converse is not true. Therefore, our simulations assume that all cisgender individuals are accurately classified (Mi=0), and transgender individuals are misclassified (Mi=1) with Bernoulli probability conditional on their race and outcome status. Then, the observed gender, Gi*, is generated where Gi*=Gi for individuals who are classified correctly (Mi=0), and Gi*=1-Gi, for individuals who are misclassified. This process is repeated for n=1,000,000 individuals, and the last step is to estimate the odds ratios of interest using a logit model that includes observed gender (Gi*), race (Bi), and their interaction. This process is repeated N=1,000 times to estimate the empirical distribution based of the estimated odds ratios based on a given simulation scenario. For each simulation scenario and each of the three odds ratios of interest, we report the mean bias, variance, mean squared error, and the coverage probability of confidence intervals using standard errors based on delta method.23 We also show the distribution of all estimated ORs across all scenarios on violin plots, a data display analogous to box plots but with the addition of representing the distribution of estimates with by contracting or expanding the plotting area based on the density of estimates in that region.24
+In our study we will simulate the effect of misclassification on the bias of estimated odds ratios (OR) measuring the association of a binary outcome with gender identity comparing cisgender individuals to transgender individuals, where, with some probability, transgender individuals are misclassified as cisgender. We will also consider scenarios in which the outcome are also associated with misclassification of transgender individuals. These scenarios are reasonable if an outcome decreases the likelihood that an individual will be seeking gender-related care such that, in the presence of this outcome, transgender individuals are not likely to carry ICD codes for gender dysphoria or related conditions, because they are being treated for other conditions. These scenarios will allow us to estimate the bias due to misclassification error of transgender individuals in the context of estimating inequities across transgender and cisgender populations.
+
+***Data Generation Mechanism and Analysis***
+
+1. Simulate n=100,000 individuals
+
+\begin{equation}
+\pi_{G}=P[G_i=1]=0.10 \\
+G_i\sim\mathbf{Bernoulli}(\pi_{G})\\
+\pi_{y,i}=expit[\beta_0+\beta_1G_i]\\
+\mathrm{OR}=e^{\beta_1}\\
+Y_i\sim\mathbf{Bernoulli}(\pi_{Y,i})\\
+\pi_{M,i}=G_i*expit[\alpha_0++\alpha_2Y_i]\\
+M_i\sim\mathbf{Bernoulli}(\pi_{M,i})\\
+G^*_i=M_i(1-G_i)+(1-M_i)G_i\\
+\end{equation}
+
+2. Fit the outcome model based on the simulated data and observed gender.
+
+\begin{equation}
+
+\end{equation}
+
+
+Figure 1 outlines the data generation mechanism for the simulations, and shows the models used at each step. In the first step, for individual i, gender and race are randomly selected from a Bernoulli distribution with a pre-specified probability. These variables, Gi and Bi, are 1 if the individual i is transgender or Black, respectively.  In the next step, conditional on gender and race, a binary outcome, Yi, is randomly drawn, based on a Bernoulli probability from a logit linear model that includes an interaction between gender and race, to account for modification between race and gender for the outcome. In the third step, a binary indicator for misclassification, Mi, conditional on gender, race, and the outcome, is drawn. In EHR- and claims- data based studies of transgender populations, all individuals are presumed to be cisgender unless they carry gender dysphoria diagnosis codes. Because these codes are specific to transgender individuals and cisgender individuals are unlikely to carry them, we assume that misclassification errors are one-way, such that transgender individuals may be misclassified as cisgender, but the converse is not true. Therefore, our simulations assume that all cisgender individuals are accurately classified (Mi=0), and transgender individuals are misclassified (Mi=1) with Bernoulli probability conditional on their race and outcome status. Then, the observed gender, Gi*, is generated where Gi*=Gi for individuals who are classified correctly (Mi=0), and Gi*=1-Gi, for individuals who are misclassified. This process is repeated for n=100000 individuals, and the last step is to estimate the odds ratios of interest using a logit model that includes observed gender (Gi*), race (Bi), and their interaction. This process is repeated N=1,000 times to estimate the empirical distribution based of the estimated odds ratios based on a given simulation scenario. For each simulation scenario and each of the three odds ratios of interest, we report the mean bias, variance, mean squared error, and the coverage probability of confidence intervals using standard errors based on delta method.23 We also show the distribution of all estimated ORs across all scenarios on violin plots, a data display analogous to box plots but with the addition of representing the distribution of estimates with by contracting or expanding the plotting area based on the density of estimates in that region.24
 
 ***Simulation Parameter Specification***
-Gender and race are simulated based on the national estimates of the transgender population,25 and Black population in the United States.26 According to a study conducted by the Williams Institute using data from the Behavioral Risk Factor Surveillance System, approximately 0.6% of the adult US population is transgender.25 However, this is likely an underestimate because the BRFSS survey instrument uses a one-question format to identify transgender individuals which has been shown to underestimate the transgender population size by half.27 Therefore, in our simulation studies, we will set the prevalence of the transgender population to 1%. In studies using claims data, the percentage of individuals meeting the diagnosis code-based criteria has been reported to be as low as 0.026% which suggests potentially very severe misclassification, given the order of magnitude difference between the observed transgender population in these national databases, and the estimated population frequency of transgender individuals.13  Therefore, we test a broad range of misclassification probabilities with transgender White individuals negative for the simulated health outcome ranging from 10% to 50% probability, increasing to transgender Black individuals positive for the simulated health outcome ranging from 30% to 91%. Lastly, we simulate bias under a wide range of estimated effect sizes (ORs from 1.51 to 6.75) because prior studies have estimated effect sizes in transgender health inequities as high as 8.5, comparing the odds of mental health diagnoses across gender identities.13 Figure 1 provides additional details on model parameters of the data generation mechanism that attain these simulated values for association measures and misclassification probabilities. 
+cording to a study conducted by the Williams Institute using data from the Behavioral Risk Factor Surveillance System, approximately 0.6% of the adult US population is transgender However, this is likely an underestimate because the BRFSS survey instrument uses a one-question format to identify transgender individuals which has been shown to underestimate the transgender population size by half.2Therefore, in our simulation studies, we will set the prevalence of the transgender population to 1%. In studies using claims data, the percentage of individuals meeting the diagnosis code-based criteria has been reported to be as low as 0.026% which suggests potentially very severe misclassification, given the order of magnitude difference between the observed transgender population in these national databases, and the estimated population frequency of transgender individuals.13  Therefore, we test a broad range of misclassification probabilities with transgender White individuals negative for the simulated health outcome ranging from 10% to 50% probability, increasing to transgender Black individuals positive for the simulated health outcome ranging from 30% to 91%. Lastly, we simulate bias under a wide range of estimated effect sizes (ORs from 1.51 to 6.75) because prior studies have estimated effect sizes in transgender health inequities as high as 8.5, comparing the odds of mental health diagnoses across gender identities.13 Figure 1 provides additional details on model parameters of the data generation mechanism that attain these simulated values for association measures and misclassification probabilities. 
+
+***Analysis***
+
+\begin{equation}
+Bias(\hat{\theta})=\mathrm{E}[\hat{\theta_i}-\theta]\\
+\hat{Bias(\hat{\theta})}=\frac{1}{N}\sum{\hat{\theta_i}-\theta}
+Var(\hat{\theta})=\mathrm{E}\bigg[(\hat{\theta_i}-\mathrm{E}[\theta_i]\bigg^2\\
+\hat{Var(\hat{\theta})}=\frac{\sum_i({\hat{\theta_i}-\bar{\hat{\theta}_i}})^2}{N-1}\\
+
+\end{equation}
+
 
 
 ### Results
@@ -56,273 +90,6 @@ Results for OR2, comparing transgender Blacks to cisgender Whites were similar t
 For OR3, comparing transgender Blacks to transgender Whites, bias increases from mild to moderate misclassification strengths from around -11% to around -16% across all effect strengths. However, the bias declined from moderate to severe to around -13%. Across all effect sizes, the variance and MSE increases with increased misclassification error. 
 
 
-```{r eval=FALSE}
-expit<-function(x)(exp(x)/(1+exp(x)))
-#simulated outcome model coefficients by scenario
-betas<-rbind(c(-2.5,0.41,0.27,0.25),
-            c(-2.5,0.7,0.24,0.40),
-            c(-2.5,1.1,0.26,0.55))
-#true association measures for simulated outcome
-ORs<-rbind(exp(betas[,2]),exp(betas[,2]+betas[,3]+betas[,4]), exp(betas[,3]+betas[,4]))
-colnames(ORs)<-paste0(c("Mild","Moderate","Strong"),".Effect")
-rownames(ORs)<-paste0("OR",c(1:3))
-alphas<-rbind(c(-2.183,1.5,0.45),
-              c(-0.845,1.65,0.45),
-              c(-0,1.9,0.45))
-missclass_probs<-rbind(expit(alphas[,1]),expit(alphas[,1]+alphas[,3]),expit(alphas[,1]+alphas[,2]),expit(apply(alphas,1,sum)))
-colnames(missclass_probs)<-paste0(c("Mild","Moderate","Severe"),".MC")
-rownames(missclass_probs)<-paste0(c("TW","TWY","TB","TBY"));missclass_probs
-#contrast vectors for odds ratios of interest
-k1<-t(c(0,1,0,0))
-k2<-t(c(0,1,1,1))
-k3<-t(c(0,0,1,1))
-#function for simulation, j=row of outcome parameters, k=row for misclassification parameters
-sim<-function(j,k,N=1000,n=1000000,pi_G=0.01,pi_B=0.149,Betas=betas,Alphas=alphas,no_misclass=FALSE){
-  expit<-function(x)(exp(x)/(1+exp(x)))
-  estimates<-data.frame(matrix(NA,N,6)) #estimated coefficients under misclassification
-  colnames(estimates)<-c("lincom1","se1","lincom2","se2","lincom3","se3") #estimated coefficients under misclassification
-  for(i in 1:N){
-    G<-rbinom(n,size=1,prob=pi_G)#Gender
-    B<-rbinom(n,size=1,prob=pi_B)#black
-    data_sim<-data.frame(Intercept=rep(1,n),G=G,B=B,"GxB"=G*B)#X matrix for observed outcome
-    X<-as.matrix(data_sim)
-    data_sim$probs_Y<-expit(X%*%Betas[j,])#prob for observed outcome
-    data_sim$Y<-rbinom(n=n,size=1,prob=data_sim$probs_Y)#observed outcome
-    if(no_misclass==T){
-    model<-glm(Y~G+B+G*B,family=binomial(link="logit"),data=data_sim)#observed model
-    sigma<-vcov(model)
-    estimates[i,c(1,3,5)]<-rbind(k1,k2,k3)%*%model$coefficients#estimates for linear combinations corresponding to ORs  of interest
-    estimates[i,c(2,4,6)]<-c(sqrt(k1%*%sigma%*%t(k1)),sqrt(k2%*%sigma%*%t(k2)),sqrt(k3%*%sigma%*%t(k3)))
-    }else if(no_misclass==F){
-    X2<-as.matrix(data_sim[,c("Intercept","B","Y")])#x matrix for misclassification
-    data_sim$probs_M<-data_sim$G*expit(X2%*%Alphas[k,])#prob for mislassification
-    data_sim$M<-rbinom(n=n,size=1,data_sim$probs_M) #misclassfcation
-    data_sim$G_star<-data_sim$M*(1-data_sim$G)+(1-data_sim$M)*(data_sim$G)#observed gender
-    model<-glm(Y~G_star+B+G_star*B,family=binomial(link="logit"),data=data_sim)#observed model 
-   sigma<-vcov(model)
-   estimates[i,c(1,3,5)]<-rbind(k1,k2,k3)%*%model$coefficients#estimates for linear combinations corresponding to ORs  of interest
-   estimates[i,c(2,4,6)]<-c(sqrt(k1%*%sigma%*%t(k1)),sqrt(k2%*%sigma%*%t(k2)),sqrt(k3%*%sigma%*%t(k3)))
-    }
-    }
-return(estimates)
-}
-
-set.seed(1205)
-#nomenclature: (strength of association_strength of misclassification)
-mild_none<-sim(j=1,no_misclass = T)
-mod_none<-sim(j=2,no_misclass = T)
-strong_none<-sim(j=3,no_misclass = T)
-
-mild_mild<-sim(j=1,k=1)
-mild_mod<-sim(j=1,k=2)
-mild_severe<-sim(j=1,k=3)
-
-mod_mild<-sim(j=2,k=1)
-mod_mod<-sim(j=2,k=2)
-mod_severe<-sim(j=2,k=3)
-
-strong_mild<-sim(j=3,k=1)
-strong_mod<-sim(j=3,k=2)
-strong_severe<-sim(j=3,k=3)
-
-#storing
-sim_output<-list(mild_none=mild_none,mod_none=mod_none,strong_none=strong_none,
-                mild_mild=mild_mild,mild_mod=mild_mod,mild_severe=mild_severe,
-                mod_mild=mod_mild,mod_mod=mod_mod,mod_severe=mod_severe,
-                strong_mild=strong_mild,strong_mod=strong_mod,strong_severe=strong_severe,
-                ORs=ORs,missclass_probs=missclass_probs)
-
-
-truth<-data.frame(sim_output$ORs)
-scen_analysis<-function(scen,target){
-est<-exp(scen[,c(1,3,5)])
-se<-est*scen[,c(2,4,6)]
-q<-qnorm(0.975)
-low_int<-est-q*se
-high_int<-est+q*se
-variance<-round(apply(est,2,var),4)
-bias<-est
-SE<-est
-coverage<-est
-for(i in 1:3){
- bias[,i]<-bias[,i]-target[i]
- SE[,i]<-(SE[,i]-target[i])^2
- coverage[,i]<-ifelse((low_int[,i]<=target[i] & high_int[,i]>=target[i]), 1,0)
-}
-mean_bias<-apply(bias,2,mean)
-mean_bias<-paste0(round(mean_bias,4)," (",round(mean_bias/target*100,2),"%)")
-MSE<-round(apply(SE,2,mean),4)
-coverage_prob<-round(apply(coverage,2,mean),4)
-scen_summary<-data.frame(rbind(mean_bias,variance,MSE,coverage_prob))
-colnames(scen_summary)<-c("OR1","OR2","OR3")
-rownames(scen_summary)<-c("Bias","Variance","MSE","Coverage")
-return(list(summary=scen_summary,ORS=est))
-}
-
-mild_none<-scen_analysis(scen=sim_output$mild_none,target=truth$Mild.Effect)
-mild_mild<-scen_analysis(scen=sim_output$mild_mild,target=truth$Mild.Effect)
-mild_mod<-scen_analysis(scen=sim_output$mild_mod,target=truth$Mild.Effect)
-mild_severe<-scen_analysis(scen=sim_output$mild_severe,target=truth$Mild.Effect)
-
-mod_none<-scen_analysis(scen=sim_output$mod_none,target=truth$Moderate.Effect)
-mod_mild<-scen_analysis(scen=sim_output$mod_mild,target=truth$Moderate.Effect)
-mod_mod<-scen_analysis(scen=sim_output$mod_mod,target=truth$Moderate.Effect)
-mod_severe<-scen_analysis(scen=sim_output$mod_severe,target=truth$Moderate.Effect)
-
-strong_none<-scen_analysis(scen=sim_output$strong_none,target=truth$Strong.Effect)
-strong_mild<-scen_analysis(scen=sim_output$strong_mild,target=truth$Strong.Effect)
-strong_mod<-scen_analysis(scen=sim_output$strong_mod,target=truth$Strong.Effect)
-strong_severe<-scen_analysis(scen=sim_output$strong_severe,target=truth$Strong.Effect)
-
-summaries<-list(mild_none=mild_none, mod_none=mod_none,strong_none=strong_none,
-                mild_mild=mild_mild,mod_mild=mod_mild,Strong_mild=strong_mild,
-                mild_mod=mild_mod,mod_mod=mod_mod,strong_mod=strong_mod,
-                mild_severe=mild_severe, mod_severe=mod_severe,strong_severe=strong_severe)
-
-#OR1
-OR1_stats<-NULL
-for ( i in 1:12){
- OR1_stats<- c(OR1_stats,summaries[[i]][[1]][,1])
-}
-
-OR1_stats<-matrix(OR1_stats,12,4,byrow=F)
-stats<-c("Bias","Variance","MSE","Coverage")
-rownames(OR1_stats)<-c(paste0(stats,"Mild"),paste0(stats,"Moderate"),paste0(stats,"Strong"))
-colnames(OR1_stats)<-c("No.MC.","Mild.MC","Moderate.MC","Severe.MC")
-
-
-
-#OR2
-
-OR2_stats<-NULL
-for ( i in 1:12){
-  OR2_stats<- c(OR2_stats,summaries[[i]][[1]][,2])
-}
-
-OR2_stats<-matrix(OR2_stats,12,4,byrow=F)
-stats<-c("Bias","Variance","MSE","Coverage")
-rownames(OR2_stats)<-c(paste0(stats,"Mild"),paste0(stats,"Moderate"),paste0(stats,"Strong"))
-colnames(OR2_stats)<-c("No.MC.","Mild.MC","Moderate.MC","Severe.MC")
-
-OR2_stats<-round(OR2_stats,4)
-
-#OR3
-
-OR3_stats<-NULL
-for ( i in 1:12){
-  OR3_stats<- c(OR3_stats,summaries[[i]][[1]][,3])
-}
-
-OR3_stats<-matrix(OR3_stats,12,4,byrow=F)
-stats<-c("Bias","Variance","MSE","Coverage")
-rownames(OR3_stats)<-c(paste0(stats,"Mild"),paste0(stats,"Moderate"),paste0(stats,"Strong"))
-colnames(OR3_stats)<-c("No.MC.","Mild.MC","Moderate.MC","Severe.MC")
-
-OR3_stats<-round(OR3_stats,4)
-
-write.csv(OR1_stats,paste0(loc,"OR1_stats.csv"))
-write.csv(OR2_stats,paste0(loc,"OR2_stats.csv"))
-write.csv(OR3_stats,paste0(loc,"OR3_stats.csv"))
-
-
-#Violin plot
-N<-1000
-miss<-c(rep("None",N),rep("Mild",N),rep("Moderate",N),rep("Severe",N))
-miss<-factor(miss,levels=c("None","Mild","Moderate","Severe"),ordered = T)
-miss<-rep(miss,3)
-group<-c(paste0(miss,c(rep(1,4000),rep(2,4000),rep(3,4000))))
-levs<-c(paste0(rep(c("None","Mild","Moderate","Severe"),3),c(rep(1,4),rep(2,4),rep(3,4))))
-group<-factor(group,levels=levs,ordered=T)
-
-#OR1 ORs
-
-
-OR1_mild<-c(summaries$mild_none$ORS[,1], summaries$mild_mild$ORS[,1], summaries$mild_mod$ORS[,1],summaries$mild_severe$ORS[,1])
-OR1_moderate<-c(summaries$mod_none$ORS[,1], summaries$mod_mild$ORS[,1], summaries$mod_mod$ORS[,1],summaries$mod_severe$ORS[,1])
-OR1_strong<-c(summaries$strong_none$ORS[,1], summaries$Strong_mild$ORS[,1], summaries$strong_mod$ORS[,1],summaries$strong_severe$ORS[,1])
-OR1<-data.frame(OR=c(OR1_mild,OR1_moderate,OR1_strong),Missclassification=miss,group=group)
-
-#theme
-
-library(Hmisc)
-violin1<-ggplot(OR1,aes(x=group,y=OR))+
-  theme_minimal()+
-  theme(plot.title = element_text(hjust = 0.5))+
-  theme(title=element_text(size=17.5))+
-  theme(axis.title=element_text(size=15))+
-  theme(axis.text=element_text(size=10))+
-  geom_violin(show.legend = FALSE)+
-  stat_summary(fun.data=mean_sdl, geom="pointrange", color="black")+
-  xlab("Strength of Misclassification")+
-  ylab("Odds Ratio")+
-  geom_text(x=2.5,y=3,label="Mild Effect",size=5)+
-  geom_text(x=6.5,y=4,label="Moderate Effect",size=5)+
-  geom_text(x=10.5,y=4,label="Strong Effect",size=5)+
-  ggtitle("OR1: Transgender White vs Cisgender White")+
-  scale_x_discrete(breaks=levels(OR1$group),labels=rep(c("None","Mild","Moderate","Severe"),3))+
-  geom_segment(aes(x=0,y=truth[1,1],xend=4.5,yend=truth[1,1]),col="black",linetype=2,show.legend=FALSE)+
-  geom_vline(xintercept=4.5)+
-  geom_segment(aes(x=4.5,y=truth[1,2],xend=8.5,yend=truth[1,2]),col="black",linetype=2,show.legend=FALSE)+
-  geom_vline(xintercept=8.5)+
-  geom_segment(aes(x=8.5,y=truth[1,3],xend=12.5,yend=truth[1,3]),col="black",linetype=2,show.legend=FALSE)
-
-#OR2
-
-OR2_mild<-c(summaries$mild_none$ORS[,2], summaries$mild_mild$ORS[,2], summaries$mild_mod$ORS[,2],summaries$mild_severe$ORS[,2])
-OR2_moderate<-c(summaries$mod_none$ORS[,2], summaries$mod_mild$ORS[,2], summaries$mod_mod$ORS[,2],summaries$mod_severe$ORS[,2])
-OR2_strong<-c(summaries$strong_none$ORS[,2], summaries$Strong_mild$ORS[,2], summaries$strong_mod$ORS[,2],summaries$strong_severe$ORS[,2])
-OR2<-data.frame(OR=c(OR2_mild,OR2_moderate,OR2_strong),Missclassification=miss,group=group)
-
-violin2<-ggplot(OR2,aes(x=group,y=OR))+
-  theme_minimal()+
-  theme(plot.title = element_text(hjust = 0.5))+
-  theme(title=element_text(size=17.5))+
-  theme(axis.title=element_text(size=15))+
-  theme(axis.text=element_text(size=10))+
-  geom_violin(show.legend = FALSE)+
-  stat_summary(fun.data=mean_sdl, geom="pointrange", color="black")+
-  xlab("Strength of Misclassification")+
-  ylab("Odds Ratio")+
-  geom_text(x=2.5,y=16,label="Mild Effect",size=5)+
-  geom_text(x=6.5,y=16,label="Moderate Effect",size=5)+
-  geom_text(x=10.5,y=16,label="Strong Effect",size=5)+
-  ggtitle("OR2: Transgender Black vs Cisgender White")+
-  scale_x_discrete(breaks=levels(OR2$group),labels=rep(c("None","Mild","Moderate","Severe"),3))+
-  geom_segment(aes(x=0,y=truth[2,1],xend=4.5,yend=truth[2,1]),col="black",linetype=2,show.legend=FALSE)+
-  geom_vline(xintercept=4.5)+
-  geom_segment(aes(x=4.5,y=truth[2,2],xend=8.5,yend=truth[2,2]),col="black",linetype=2,show.legend=FALSE)+
-  geom_vline(xintercept=8.5)+
-  geom_segment(aes(x=8.5,y=truth[2,3],xend=12.5,yend=truth[2,3]),col="black",linetype=2,show.legend=FALSE)
-  
-#OR3
-OR3_mild<-c(summaries$mild_none$ORS[,3], summaries$mild_mild$ORS[,3], summaries$mild_mod$ORS[,3],summaries$mild_severe$ORS[,3])
-OR3_moderate<-c(summaries$mod_none$ORS[,3], summaries$mod_mild$ORS[,3], summaries$mod_mod$ORS[,3],summaries$mod_severe$ORS[,3])
-OR3_strong<-c(summaries$strong_none$ORS[,3], summaries$Strong_mild$ORS[,3], summaries$strong_mod$ORS[,3],summaries$strong_severe$ORS[,3])
-OR3<-data.frame(OR=c(OR3_mild,OR3_moderate,OR3_strong),Missclassification=miss,group=group)
-
-violin3<-ggplot(OR3,aes(x=group,y=OR))+
-  theme_minimal()+
-  theme(plot.title = element_text(hjust = 0.5))+
-  theme(title=element_text(size=17.5))+
-  theme(axis.title=element_text(size=15))+
-  theme(axis.text=element_text(size=10))+
-  geom_violin(show.legend = FALSE)+
-  stat_summary(fun.data=mean_sdl, geom="pointrange", color="black")+
-  xlab("Strength of Misclassification")+
-  ylab("Odds Ratio")+
-  geom_text(x=2.5,y=16,label="Mild Effect",size=5)+
-  geom_text(x=6.5,y=16,label="Moderate Effect",size=5)+
-  geom_text(x=10.5,y=16,label="Strong Effect",size=5)+
-  ggtitle("OR3: Transgender Black vs Transgender White")+
-  scale_x_discrete(breaks=levels(OR3$group),labels=rep(c("None","Mild","Moderate","Severe"),3))+
-  geom_segment(aes(x=0,y=truth[3,1],xend=4.5,yend=truth[3,1]),col="black",linetype=2,show.legend=FALSE)+
-  geom_vline(xintercept=4.5)+
-  geom_segment(aes(x=4.5,y=truth[3,2],xend=8.5,yend=truth[3,2]),col="black",linetype=2,show.legend=FALSE)+
-  geom_vline(xintercept=8.5)+
-  geom_segment(aes(x=8.5,y=truth[3,3],xend=12.5,yend=truth[3,3]),col="black",linetype=2,show.legend=FALSE)
-
-
-```
 
 ### Conclusion
 
