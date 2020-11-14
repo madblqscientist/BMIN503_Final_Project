@@ -15,6 +15,7 @@ options(width = 400)
 **Note: This work has already been converted to a manuscript that is under review so DO NOT circulate**
 
 ### Overview
+THIS IS NEW
 
 **Background**: Electronic health records (EHRs) and administrative claims databases are increasingly being used to study the distribution of health outcomes among transgender individuals. However, gender identity is not comprehensively reported in these data sources so diagnosis codes are used as a proxy to identify transgender subgroups within the data. To date, no study has characterized the bias introduced by misclassification of gender identity based on this proxy metric.
 
