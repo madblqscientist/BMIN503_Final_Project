@@ -71,13 +71,36 @@ cording to a study conducted by the Williams Institute using data from the Behav
 
 ***Analysis***
 
-\begin{equation}
-Bias(\hat{\theta})=\mathrm{E}[\hat{\theta_i}-\theta]\\
-\hat{Bias(\hat{\theta})}=\frac{1}{N}\sum{\hat{\theta_i}-\theta}
-Var(\hat{\theta})=\mathrm{E}\bigg[(\hat{\theta_i}-\mathrm{E}[\theta_i]\bigg^2\\
-\hat{Var(\hat{\theta})}=\frac{\sum_i({\hat{\theta_i}-\bar{\hat{\theta}_i}})^2}{N-1}\\
+For the analysis, we will calculate the following measures for the performance of our estimator .Below, $\hat{\theta}$ refers to the simulated values (estimates) of the odds ratio, $\theta$ refers to the true value of the odds ratio, $E$ refers to the expectation operation. Also, bars above indicate means, and hats indicate estimates. 
 
-\end{equation}
+Bias is a measure of how far an estimator is from the true value, and the formula is given below. 
+$$
+Bias(\hat{\theta})=\mathrm{E}[\hat{\theta_i}-\theta]\\
+$$
+The estimated bias, based on N estimates of $\theta$ is: 
+
+$$
+\hat{Bias(\hat{\theta})}=\frac{\sum{[\hat{\theta_i}-\theta}]}{N}
+$$
+
+Variance is a measure of the spread of the estimates, and is given below.
+
+$$
+Var(\hat{\theta})=\mathrm{E}\bigg[(\hat{\theta_i}-\mathrm{E}[\theta_i])^2\bigg]
+$$
+The estiamted varias, based on estimates of $\theta$, $\theta_i$ is:
+
+$$
+\hat{Var(\hat{\theta})}=\frac{\sum_i({\hat{\theta_i}-\bar{\hat{\theta}_i}})^2}{N-1}
+$$
+
+$$
+MSE(\hat{\theta})=\mathrm{E}\bigg[(\hat{\theta_i}-\theta)^2\bigg]\\
+$$
+$$
+\hat{MSE(\hat{\theta})}=\frac{\sum_i({\hat{\theta_i}-\theta})^2}{N-1}
+$$
+
 
 
 
