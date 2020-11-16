@@ -279,6 +279,98 @@ document.addEventListener('DOMContentLoaded', function() {
     </style>
 
 
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  background-color: #f8f8f8; }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ef2929; } /* Alert */
+code span.an { color: #8f5902; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #c4a000; } /* Attribute */
+code span.bn { color: #0000cf; } /* BaseN */
+code span.cf { color: #204a87; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4e9a06; } /* Char */
+code span.cn { color: #000000; } /* Constant */
+code span.co { color: #8f5902; font-style: italic; } /* Comment */
+code span.cv { color: #8f5902; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #8f5902; font-weight: bold; font-style: italic; } /* Documentation */
+code span.dt { color: #204a87; } /* DataType */
+code span.dv { color: #0000cf; } /* DecVal */
+code span.er { color: #a40000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #0000cf; } /* Float */
+code span.fu { color: #000000; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #204a87; font-weight: bold; } /* Keyword */
+code span.op { color: #ce5c00; font-weight: bold; } /* Operator */
+code span.ot { color: #8f5902; } /* Other */
+code span.pp { color: #8f5902; font-style: italic; } /* Preprocessor */
+code span.sc { color: #000000; } /* SpecialChar */
+code span.ss { color: #4e9a06; } /* SpecialString */
+code span.st { color: #4e9a06; } /* String */
+code span.va { color: #000000; } /* Variable */
+code span.vs { color: #4e9a06; } /* VerbatimString */
+code span.wa { color: #8f5902; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
 
 
 <style type="text/css">
@@ -439,39 +531,155 @@ summary {
 <h3>Methods</h3>
 <p><strong><em>Simulation Rationale</em></strong></p>
 <p>In our study we will simulate the effect of misclassification on the bias of estimated odds ratios (OR) measuring the association of a binary outcome with gender identity comparing cisgender individuals to transgender individuals, where, with some probability, transgender individuals are misclassified as cisgender. We will also consider scenarios in which the outcome are also associated with misclassification of transgender individuals. These scenarios are reasonable if an outcome decreases the likelihood that an individual will be seeking gender-related care such that, in the presence of this outcome, transgender individuals are not likely to carry ICD codes for gender dysphoria or related conditions, because they are being treated for other conditions. These scenarios will allow us to estimate the bias due to misclassification error of transgender individuals in the context of estimating inequities across transgender and cisgender populations.</p>
-<p><strong><em>Data Generation Mechanism and Analysis</em></strong></p>
+<p><strong><em>Data Generation Mechanism</em></strong></p>
+<p>Part 1: Simulate n=1,000,000 individuals</p>
 <ol style="list-style-type: decimal">
-<li>Simulate n=100,000 individuals</li>
+<li>Simulate Gender Identity <span class="math inline">\(G_i\)</span></li>
 </ol>
-<p><span class="math display">\[\begin{equation}
-\pi_{G}=P[G_i=1]=0.10 \\
-G_i\sim\mathbf{Bernoulli}(\pi_{G})\\
-\pi_{y,i}=expit[\beta_0+\beta_1G_i]\\
-\mathrm{OR}=e^{\beta_1}\\
+<p>Acording to a study conducted by the Williams Institute using data from the Behavioral Risk Factor Surveillance System, approximately 0.6% of the adult US population is transgender However, this is likely an underestimate because the BRFSS survey instrument uses a one-question format to identify transgender individuals which has been shown to underestimate the transgender population size by half. Therefore, in our study, we will set the prevalence of the transgender population in the United States to 1% <span class="math inline">\(\pi_G\)</span>. For each person we will randomly sample their gender identity from the Bernoulli distribution, where <span class="math inline">\(G_i=0\)</span> for cisgender, and <span class="math inline">\(G_i=1\)</span> for transgender.</p>
+<p><span class="math display">\[
+\pi_{G}=P[G_i=1]=0.01
+\]</span> <span class="math display">\[
+G_i\sim\mathbf{Bernoulli}(\pi_{G})
+\]</span> 2. Simulate Distribution of Outcome <span class="math inline">\(Y_i\)</span></p>
+<p>In the next step, conditional on gender, a binary outcome, <span class="math inline">\(Y_i\)</span>, for example, depression, is randomly drawn, based on a Bernoulli probability from a logit linear model that includes gender identity. We will specify the intercept term so that the baseline prevalence is approximately 10%, consistent with depression in the overall US population, and very the log-linear slope term <span class="math inline">\(\beta_1\)</span> for different strengths of association between transgender identity and the outcome <span class="math inline">\(\mathrm{OR}\)</span>, . Please note that the <span class="math inline">\(expit\)</span> function is the inverse of the <span class="math inline">\(logit\)</span> function, the link function used in logistic regression, the most common approach for modeling binary data.</p>
+<p><span class="math display">\[
+\pi_{y,i}=expit[\beta_0+\beta_1G_i]
+\]</span> <span class="math display">\[
 Y_i\sim\mathbf{Bernoulli}(\pi_{Y,i})\\
-\pi_{M,i}=G_i*expit[\alpha_0++\alpha_2Y_i]\\
-M_i\sim\mathbf{Bernoulli}(\pi_{M,i})\\
-G^*_i=M_i(1-G_i)+(1-M_i)G_i\\
-\end{equation}\]</span></p>
-<ol start="2" style="list-style-type: decimal">
-<li>Fit the outcome model based on the simulated data and observed gender.</li>
+\]</span> <span class="math display">\[
+\mathrm{OR}=e^{\beta_1}
+\]</span> 3. Simulate Misclassification</p>
+<p>In the third step, a binary indicator for misclassification, <span class="math inline">\(M_i\)</span>, conditional on gender and the outcome, is drawn. In EHR- and claims- data based studies of transgender populations, all individuals are presumed to be cisgender unless they carry gender dysphoria diagnosis codes. Because these codes are specific to transgender individuals and cisgender individuals are unlikely to carry them, we assume that misclassification errors are one-way, such that transgender individuals may be misclassified as cisgender, but the converse is not true. Therefore, our simulations assume that all cisgender individuals are accurately classified <span class="math inline">\(M_i=0\)</span>, and transgender individuals are misclassified <span class="math inline">\(M_i=1\)</span> with Bernoulli probability conditional on their outcome status. Then, the observed gender, <span class="math inline">\(G_i^*\)</span>, is generated where <span class="math inline">\(G_i^*=G_i\)</span> for individuals who are classified correctly (<span class="math inline">\(M_i=0\)</span>), and <span class="math inline">\(G_i^*=1-G_i\)</span>, for individuals who are misclassified.</p>
+<p><span class="math display">\[
+\pi_{M,i}=G_i*expit[\alpha_0+\alpha_2Y_i]\\
+\]</span> <span class="math display">\[
+M_i\sim\mathbf{Bernoulli}(\pi_{M,i})
+\]</span></p>
+<p><span class="math display">\[
+G^*_i=M_i(1-G_i)+(1-M_i)G_i
+\]</span></p>
+<ol start="4" style="list-style-type: decimal">
+<li>Fit the outcome model based on the simulated data and observed gender, and estiamte the observed association between the outcome and gender identity <span class="math inline">\(\hat{\mathrm{OR}}\)</span></li>
 </ol>
-<p><span class="math display">\[\begin{equation}
-
-\end{equation}\]</span></p>
-<p>Figure 1 outlines the data generation mechanism for the simulations, and shows the models used at each step. In the first step, for individual i, gender and race are randomly selected from a Bernoulli distribution with a pre-specified probability. These variables, Gi and Bi, are 1 if the individual i is transgender or Black, respectively. In the next step, conditional on gender and race, a binary outcome, Yi, is randomly drawn, based on a Bernoulli probability from a logit linear model that includes an interaction between gender and race, to account for modification between race and gender for the outcome. In the third step, a binary indicator for misclassification, Mi, conditional on gender, race, and the outcome, is drawn. In EHR- and claims- data based studies of transgender populations, all individuals are presumed to be cisgender unless they carry gender dysphoria diagnosis codes. Because these codes are specific to transgender individuals and cisgender individuals are unlikely to carry them, we assume that misclassification errors are one-way, such that transgender individuals may be misclassified as cisgender, but the converse is not true. Therefore, our simulations assume that all cisgender individuals are accurately classified (Mi=0), and transgender individuals are misclassified (Mi=1) with Bernoulli probability conditional on their race and outcome status. Then, the observed gender, Gi<em>, is generated where Gi</em>=Gi for individuals who are classified correctly (Mi=0), and Gi<em>=1-Gi, for individuals who are misclassified. This process is repeated for n=100000 individuals, and the last step is to estimate the odds ratios of interest using a logit model that includes observed gender (Gi</em>), race (Bi), and their interaction. This process is repeated N=1,000 times to estimate the empirical distribution based of the estimated odds ratios based on a given simulation scenario. For each simulation scenario and each of the three odds ratios of interest, we report the mean bias, variance, mean squared error, and the coverage probability of confidence intervals using standard errors based on delta method.23 We also show the distribution of all estimated ORs across all scenarios on violin plots, a data display analogous to box plots but with the addition of representing the distribution of estimates with by contracting or expanding the plotting area based on the density of estimates in that region.24</p>
-<p><strong><em>Simulation Parameter Specification</em></strong> cording to a study conducted by the Williams Institute using data from the Behavioral Risk Factor Surveillance System, approximately 0.6% of the adult US population is transgender However, this is likely an underestimate because the BRFSS survey instrument uses a one-question format to identify transgender individuals which has been shown to underestimate the transgender population size by half.2Therefore, in our simulation studies, we will set the prevalence of the transgender population to 1%. In studies using claims data, the percentage of individuals meeting the diagnosis code-based criteria has been reported to be as low as 0.026% which suggests potentially very severe misclassification, given the order of magnitude difference between the observed transgender population in these national databases, and the estimated population frequency of transgender individuals.13 Therefore, we test a broad range of misclassification probabilities with transgender White individuals negative for the simulated health outcome ranging from 10% to 50% probability, increasing to transgender Black individuals positive for the simulated health outcome ranging from 30% to 91%. Lastly, we simulate bias under a wide range of estimated effect sizes (ORs from 1.51 to 6.75) because prior studies have estimated effect sizes in transgender health inequities as high as 8.5, comparing the odds of mental health diagnoses across gender identities.13 Figure 1 provides additional details on model parameters of the data generation mechanism that attain these simulated values for association measures and misclassification probabilities.</p>
+<p><span class="math display">\[
+\mathrm{logit[\mathrm{P}(Y_i=1)]=\gamma_0+\gamma_1G_i^*}
+\]</span> <span class="math display">\[
+\hat{\mathrm{OR}}=e^{\hat{\gamma_1}}
+\]</span> Part 2: Repeat N=1,000 times to estimate the empirical distribution of the assocation between gender identity under the outcome.</p>
+<p><strong><em>Simulation Scenarios</em></strong></p>
+<p>In studies using claims data, the percentage of individuals meeting the diagnosis code-based criteria has been reported to be as low as 0.026% which suggests potentially very severe misclassification, given the order of magnitude difference between the observed transgender population in these national databases, and the estimated population frequency of transgender individuals. Therefore, we test a broad range of misclassification probabilities with the probability of misclassification ranging from 10%, 30%, 50%, and 70%. Lastly, we simulate bias under a wide range of estimated effect sizes, from 1.50 to 6.00, because prior studies have estimated effect sizes in transgender health inequities as high as 8.5, comparing the odds of mental health diagnoses across gender identities.</p>
 <p><strong><em>Analysis</em></strong></p>
-<p><span class="math display">\[\begin{equation}
+<p>For the analysis, we will calculate the following measures to evaluate the quality of our estimates of the association between <span class="math inline">\(Y_i\)</span> and gender identity. Below, <span class="math inline">\(\hat{\theta}\)</span> refers to the simulated values (estimates) of the odds ratio, <span class="math inline">\(\theta\)</span> refers to the true value of the odds ratio, and <span class="math inline">\(E\)</span> refers to the expectation operation. Also, bars above indicate means, and hats indicate estimates.</p>
+<p>Bias is a measure of how far an estimate is from the true value, and the formula is given below. <span class="math display">\[
 Bias(\hat{\theta})=\mathrm{E}[\hat{\theta_i}-\theta]\\
-\hat{Bias(\hat{\theta})}=\frac{1}{N}\sum{\hat{\theta_i}-\theta}
-Var(\hat{\theta})=\mathrm{E}\bigg[(\hat{\theta_i}-\mathrm{E}[\theta_i]\bigg^2\\
-\hat{Var(\hat{\theta})}=\frac{\sum_i({\hat{\theta_i}-\bar{\hat{\theta}_i}})^2}{N-1}\\
-
-\end{equation}\]</span></p>
+\]</span></p>
+<p>The estimated bias, based on N <span class="math inline">\(\theta_i\)</span> estimates of <span class="math inline">\(\theta\)</span>, is:</p>
+<p><span class="math display">\[
+\hat{Bias(\hat{\theta})}=\frac{\sum{[\hat{\theta_i}-\theta}]}{N}
+\]</span></p>
+<p>Variance is a measure of the spread of the distribution of the estimate or statistic, and is given below.</p>
+<p><span class="math display">\[
+Var(\hat{\theta})=\mathrm{E}\bigg[(\hat{\theta_i}-\mathrm{E}[\theta_i])^2\bigg]
+\]</span> The estimated variance, based on N<span class="math inline">\(\theta_i\)</span> estimates of <span class="math inline">\(\theta\)</span>, is:</p>
+<p><span class="math display">\[
+\hat{Var(\hat{\theta})}=\frac{\sum_i({\hat{\theta_i}-\bar{\hat{\theta}_i}})^2}{N-1}
+\]</span></p>
+<p>The mean squared error is the expectation of the estimate minus the true value, squared. It can actually be decomposed into the variance and bias, as shown below. <span class="math display">\[
+MSE(\hat{\theta})=\mathrm{E}\bigg[(\hat{\theta_i}-\theta)^2\bigg]=Var(\hat{\theta})+Bias^2({\hat{\theta}})
+\]</span> Given this decomposition, you can view the MSE as a summary measure of the overal performance of your estimator. The estimated MSE, based on N <span class="math inline">\(\theta_i\)</span> estimates of <span class="math inline">\(\theta\)</span>, is:</p>
+<p><span class="math display">\[
+\hat{MSE(\hat{\theta})}=\frac{\sum_i({\hat{\theta_i}-\theta})^2}{N}
+\]</span></p>
+<p>The last summary measure we will calculate is the coverage probability. This is the probability that the confidence interval corresponding to your estimate spans (includes) the true value, in this case, the true OR. This can be estimated by the proportion of the 1,000 simulated confidence interals that include the true OR under each scenario. We calculate the standard errors used to estimate the confidence interval with the delta method. This is a statistical method that allows you to estimate the distribution of a function of a statistics that is known to be asymptotical normal. For more details, read this article [<a href="https://www.wikiwand.com/en/Delta_method" class="uri">https://www.wikiwand.com/en/Delta_method</a>].</p>
+<p>For the analysis, I will create matrices that correspond to all the different parameters i’ll need for the various scenarios.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co">#parameters to specify the true outcome model</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a>betas&lt;-<span class="kw">rbind</span>(<span class="kw">c</span>(<span class="op">-</span><span class="fl">2.302</span>,<span class="kw">log</span>(<span class="fl">1.5</span>)),<span class="kw">c</span>(<span class="op">-</span><span class="fl">2.302</span>,<span class="kw">log</span>(<span class="fl">3.0</span>)),<span class="kw">c</span>(<span class="op">-</span><span class="fl">2.302</span>,<span class="kw">log</span>(<span class="fl">4.5</span>)),<span class="kw">c</span>(<span class="op">-</span><span class="fl">2.302</span>,<span class="kw">log</span>(<span class="dv">6</span>)))</span>
+<span id="cb1-3"><a href="#cb1-3"></a>effect_scenarios&lt;-<span class="kw">data.frame</span>(<span class="dt">Strength=</span><span class="kw">c</span>(<span class="st">&quot;Mild&quot;</span>,<span class="st">&quot;Moderate&quot;</span>, <span class="st">&quot;Strong&quot;</span>,<span class="st">&quot;Severe&quot;</span>),betas,<span class="kw">exp</span>(betas[,<span class="dv">2</span>]))</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="kw">colnames</span>(effect_scenarios)&lt;-<span class="kw">c</span>(<span class="st">&quot;Strength of Association&quot;</span>,<span class="st">&quot;Beta_0&quot;</span>,<span class="st">&quot;Beta_1&quot;</span>, <span class="st">&quot;True OR&quot;</span>)</span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="kw">kable</span>(effect_scenarios,<span class="dt">caption=</span><span class="st">&quot;Parameters for True Outcome Model&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Parameters for True Outcome Model</caption>
+<thead>
+<tr class="header">
+<th align="left">Strength of Association</th>
+<th align="right">Beta_0</th>
+<th align="right">Beta_1</th>
+<th align="right">True OR</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Mild</td>
+<td align="right">-2.302</td>
+<td align="right">0.4054651</td>
+<td align="right">1.5</td>
+</tr>
+<tr class="even">
+<td align="left">Moderate</td>
+<td align="right">-2.302</td>
+<td align="right">1.0986123</td>
+<td align="right">3.0</td>
+</tr>
+<tr class="odd">
+<td align="left">Strong</td>
+<td align="right">-2.302</td>
+<td align="right">1.5040774</td>
+<td align="right">4.5</td>
+</tr>
+<tr class="even">
+<td align="left">Severe</td>
+<td align="right">-2.302</td>
+<td align="right">1.7917595</td>
+<td align="right">6.0</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co">#parameters to specify the </span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>alphas&lt;-<span class="kw">rbind</span>(<span class="kw">c</span>(<span class="op">-</span><span class="fl">2.302</span>,<span class="dv">0</span>),<span class="kw">c</span>(<span class="op">-</span><span class="fl">2.302</span>,<span class="fl">1.0995</span>),<span class="kw">c</span>(<span class="op">-</span><span class="fl">2.302</span>,<span class="fl">1.6095</span>),<span class="kw">c</span>(<span class="op">-</span><span class="fl">2.302</span>,<span class="fl">1.946</span>))</span>
+<span id="cb2-3"><a href="#cb2-3"></a>miss_scenarios&lt;-<span class="kw">data.frame</span>(<span class="dt">Misclassification=</span><span class="kw">c</span>(<span class="st">&quot;Mild&quot;</span>,<span class="st">&quot;Moderate&quot;</span>, <span class="st">&quot;Strong&quot;</span>,<span class="st">&quot;Severe&quot;</span>),alphas,<span class="kw">paste0</span>(<span class="kw">apply</span>(alphas,<span class="dv">1</span>,<span class="cf">function</span>(x){<span class="kw">round</span>(<span class="kw">exp</span>(<span class="kw">sum</span>(x))<span class="op">*</span><span class="dv">100</span>,<span class="dv">1</span>)}),<span class="st">&quot;%&quot;</span>))</span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="kw">colnames</span>(miss_scenarios)&lt;-<span class="kw">c</span>(<span class="st">&quot;Misclassification&quot;</span>,<span class="st">&quot;alpha_0&quot;</span>,<span class="st">&quot;alpha_1&quot;</span>,<span class="st">&quot;Misclassification Percentage&quot;</span>)</span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="kw">kable</span>(miss_scenarios,<span class="dt">caption=</span><span class="st">&quot;Parameters for Misclassification Model&quot;</span>)</span></code></pre></div>
+<table>
+<caption>Parameters for Misclassification Model</caption>
+<thead>
+<tr class="header">
+<th align="left">Misclassification</th>
+<th align="right">alpha_0</th>
+<th align="right">alpha_1</th>
+<th align="left">Misclassification Percentage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Mild</td>
+<td align="right">-2.302</td>
+<td align="right">0.0000</td>
+<td align="left">10%</td>
+</tr>
+<tr class="even">
+<td align="left">Moderate</td>
+<td align="right">-2.302</td>
+<td align="right">1.0995</td>
+<td align="left">30%</td>
+</tr>
+<tr class="odd">
+<td align="left">Strong</td>
+<td align="right">-2.302</td>
+<td align="right">1.6095</td>
+<td align="left">50%</td>
+</tr>
+<tr class="even">
+<td align="left">Severe</td>
+<td align="right">-2.302</td>
+<td align="right">1.9460</td>
+<td align="left">70%</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div id="results" class="section level3">
-<h3>Results</h3>
+<div id="analysis-and-results" class="section level3">
+<h3>Analysis and Results</h3>
 <p>Table 1 shows the summary statistics for all scenarios and odds ratios. For all ORs, the estimates are unbiased when the there is no misclassification (percent bias between -0.07% to 0.18%). For OR1, comparing White transgender to White cisgender groups, the bias in the estimates increases with the strength of transgender misclassification, specifically a downward bias of 5.58% downward under mild misclassification to 22.39% downward bias under severe misclassification with a mild effect (True OR: 1.51). Similar results for bias were found with for moderate effect (True OR: 2.01) and strong effect (True OR: 3.00). However, the decrease in coverage probability differed by strength of effect and strength of misclassification. With the mild effect, the coverage probability decreased from 0.96 with no misclassification, to 0.646, 0.03, and 0.002 with mild, moderate, and severe misclassification, respectfully. With stronger effect sizes, the rate of decline in coverage probability was steeper, with a drop to 0.56 in mild misclassification for moderate effect size, and 0.456 with strong effect size. The distribution of OR estimates for all effect and misclassification strengths, across all scenarios is shown in the violin plot for Figure 2. Results for OR2, comparing transgender Blacks to cisgender Whites were similar to OR1. Across all effect sizes for OR2, bias increased with increasing misclassification, from around -16% at mild misclassification to around -33% with severe misclassification. Similar with OR1 coverage probability declines with increasing misclassification, except, between moderate and severe misclassification, across all effect strengths, where for mild effect the coverage improves from 0.237 to 0.392, and strong effect it improves from 0.09 to 0.197. This occurs concurrently with increases in variance and mean squared error (Table 1).</p>
 <p>For OR3, comparing transgender Blacks to transgender Whites, bias increases from mild to moderate misclassification strengths from around -11% to around -16% across all effect strengths. However, the bias declined from moderate to severe to around -13%. Across all effect sizes, the variance and MSE increases with increased misclassification error.</p>
 </div>

@@ -14,10 +14,10 @@ output:
 options(width = 400)
 library(knitr)
 library(Hmisc)
+library(ggplot2)
 ```  
 
 ### Overview
-
 
 
 **Background**: Electronic health records (EHRs) and administrative claims databases are increasingly being used to study the distribution of health outcomes among transgender individuals. However, gender identity is not comprehensively reported in these data sources so diagnosis codes are used as a proxy to identify transgender subgroups within the data. To date, no study has characterized the bias introduced by misclassification of gender identity based on this proxy metric.
@@ -42,75 +42,237 @@ library(Hmisc)
 
 In our study we will simulate the effect of misclassification on the bias of estimated odds ratios (OR) measuring the association of a binary outcome with gender identity comparing cisgender individuals to transgender individuals, where, with some probability, transgender individuals are misclassified as cisgender. We will also consider scenarios in which the outcome are also associated with misclassification of transgender individuals. These scenarios are reasonable if an outcome decreases the likelihood that an individual will be seeking gender-related care such that, in the presence of this outcome, transgender individuals are not likely to carry ICD codes for gender dysphoria or related conditions, because they are being treated for other conditions. These scenarios will allow us to estimate the bias due to misclassification error of transgender individuals in the context of estimating inequities across transgender and cisgender populations.
 
-***Data Generation Mechanism and Analysis***
+***Data Generation Mechanism***
 
-1. Simulate n=100,000 individuals
 
-\begin{equation}
-\pi_{G}=P[G_i=1]=0.10 \\
-G_i\sim\mathbf{Bernoulli}(\pi_{G})\\
-\pi_{y,i}=expit[\beta_0+\beta_1G_i]\\
-\mathrm{OR}=e^{\beta_1}\\
+Part 1: Simulate n=1,000,000 individuals
+
+1. Simulate Gender Identity $G_i$
+
+Acording to a study conducted by the Williams Institute using data from the Behavioral Risk Factor Surveillance System, approximately 0.6% of the adult US population is transgender However, this is likely an underestimate because the BRFSS survey instrument uses a one-question format to identify transgender individuals which has been shown to underestimate the transgender population size by half. Therefore, in our study, we will set the prevalence of the transgender population in the United States to 1\% $\pi_G$. For each person we will randomly sample their gender identity from the Bernoulli distribution, where $G_i=0$ for cisgender, and $G_i=1$ for transgender. 
+
+$$
+\pi_{G}=P[G_i=1]=0.01
+$$
+$$
+G_i\sim\mathbf{Bernoulli}(\pi_{G})
+$$
+2. Simulate Distribution of Outcome $Y_i$
+
+
+In the next step, conditional on gender, a binary outcome, $Y_i$, for example, depression, is randomly drawn, based on a Bernoulli probability from a logit linear model that includes gender identity. We will specify the intercept term so that the baseline prevalence is approximately 10%, consistent with depression in the overall US population, and very the log-linear slope term $\beta_1$ for different strengths of association between transgender identity and the outcome $\mathrm{OR}$, . Please note that the $expit$ function is the inverse of the $logit$ function, the link function used in logistic regression, the most common approach for modeling binary data. 
+
+$$
+\pi_{y,i}=expit[\beta_0+\beta_1G_i]
+$$
+$$
 Y_i\sim\mathbf{Bernoulli}(\pi_{Y,i})\\
-\pi_{M,i}=G_i*expit[\alpha_0++\alpha_2Y_i]\\
-M_i\sim\mathbf{Bernoulli}(\pi_{M,i})\\
-G^*_i=M_i(1-G_i)+(1-M_i)G_i\\
-\end{equation}
+$$
+$$
+\mathrm{OR}=e^{\beta_1}
+$$
+3. Simulate Misclassification
 
-2. Fit the outcome model based on the simulated data and observed gender.
+In the third step, a binary indicator for misclassification, $M_i$, conditional on gender and the outcome, is drawn. In EHR- and claims- data based studies of transgender populations, all individuals are presumed to be cisgender unless they carry gender dysphoria diagnosis codes. Because these codes are specific to transgender individuals and cisgender individuals are unlikely to carry them, we assume that misclassification errors are one-way, such that transgender individuals may be misclassified as cisgender, but the converse is not true. Therefore, our simulations assume that all cisgender individuals are accurately classified $M_i=0$, and transgender individuals are misclassified $M_i=1$ with Bernoulli probability conditional on their outcome status. Then, the observed gender, $G_i^*$, is generated where $G_i^*=G_i$ for individuals who are classified correctly ($M_i=0$), and $G_i^*=1-G_i$, for individuals who are misclassified. 
 
-\begin{equation}
+$$
+\pi_{M,i}=G_i*expit[\alpha_0+\alpha_2Y_i]\\
+$$
+$$
+M_i\sim\mathbf{Bernoulli}(\pi_{M,i})
+$$
 
-\end{equation}
+$$
+G^*_i=M_i(1-G_i)+(1-M_i)G_i
+$$
+
+4. Fit the outcome model based on the simulated data and observed gender, and estiamte the observed association between the outcome and gender identity $\hat{\mathrm{OR}}$
 
 
-Figure 1 outlines the data generation mechanism for the simulations, and shows the models used at each step. In the first step, for individual i, gender and race are randomly selected from a Bernoulli distribution with a pre-specified probability. These variables, Gi and Bi, are 1 if the individual i is transgender or Black, respectively.  In the next step, conditional on gender and race, a binary outcome, Yi, is randomly drawn, based on a Bernoulli probability from a logit linear model that includes an interaction between gender and race, to account for modification between race and gender for the outcome. In the third step, a binary indicator for misclassification, Mi, conditional on gender, race, and the outcome, is drawn. In EHR- and claims- data based studies of transgender populations, all individuals are presumed to be cisgender unless they carry gender dysphoria diagnosis codes. Because these codes are specific to transgender individuals and cisgender individuals are unlikely to carry them, we assume that misclassification errors are one-way, such that transgender individuals may be misclassified as cisgender, but the converse is not true. Therefore, our simulations assume that all cisgender individuals are accurately classified (Mi=0), and transgender individuals are misclassified (Mi=1) with Bernoulli probability conditional on their race and outcome status. Then, the observed gender, Gi*, is generated where Gi*=Gi for individuals who are classified correctly (Mi=0), and Gi*=1-Gi, for individuals who are misclassified. This process is repeated for n=100000 individuals, and the last step is to estimate the odds ratios of interest using a logit model that includes observed gender (Gi*), race (Bi), and their interaction. This process is repeated N=1,000 times to estimate the empirical distribution based of the estimated odds ratios based on a given simulation scenario. For each simulation scenario and each of the three odds ratios of interest, we report the mean bias, variance, mean squared error, and the coverage probability of confidence intervals using standard errors based on delta method.23 We also show the distribution of all estimated ORs across all scenarios on violin plots, a data display analogous to box plots but with the addition of representing the distribution of estimates with by contracting or expanding the plotting area based on the density of estimates in that region.24
+$$
+\mathrm{logit[\mathrm{P}(Y_i=1)]=\gamma_0+\gamma_1G_i^*}
+$$
+$$
+\hat{\mathrm{OR}}=e^{\hat{\gamma_1}}
+$$
+ Part 2: Repeat N=1,000 times to estimate the empirical distribution of the assocation between gender identity under the outcome. 
 
-***Simulation Parameter Specification***
-cording to a study conducted by the Williams Institute using data from the Behavioral Risk Factor Surveillance System, approximately 0.6% of the adult US population is transgender However, this is likely an underestimate because the BRFSS survey instrument uses a one-question format to identify transgender individuals which has been shown to underestimate the transgender population size by half.2Therefore, in our simulation studies, we will set the prevalence of the transgender population to 1%. In studies using claims data, the percentage of individuals meeting the diagnosis code-based criteria has been reported to be as low as 0.026% which suggests potentially very severe misclassification, given the order of magnitude difference between the observed transgender population in these national databases, and the estimated population frequency of transgender individuals.13  Therefore, we test a broad range of misclassification probabilities with transgender White individuals negative for the simulated health outcome ranging from 10% to 50% probability, increasing to transgender Black individuals positive for the simulated health outcome ranging from 30% to 91%. Lastly, we simulate bias under a wide range of estimated effect sizes (ORs from 1.51 to 6.75) because prior studies have estimated effect sizes in transgender health inequities as high as 8.5, comparing the odds of mental health diagnoses across gender identities.13 Figure 1 provides additional details on model parameters of the data generation mechanism that attain these simulated values for association measures and misclassification probabilities. 
 
+
+***Simulation Scenarios***
+
+In studies using claims data, the percentage of individuals meeting the diagnosis code-based criteria has been reported to be as low as 0.026% which suggests potentially very severe misclassification, given the order of magnitude difference between the observed transgender population in these national databases, and the estimated population frequency of transgender individuals. Therefore, we test a broad range of misclassification probabilities with the probability of misclassification ranging from 10%, 30%, 50%, and 70%. Lastly, we simulate bias under a wide range of estimated effect sizes, from 1.50 to 6.00, because prior studies have estimated effect sizes in transgender health inequities as high as 8.5, comparing the odds of mental health diagnoses across gender identities.
+ 
 ***Analysis***
 
-For the analysis, we will calculate the following measures for the performance of our estimator .Below, $\hat{\theta}$ refers to the simulated values (estimates) of the odds ratio, $\theta$ refers to the true value of the odds ratio, $E$ refers to the expectation operation. Also, bars above indicate means, and hats indicate estimates. 
+For the analysis, we will calculate the following measures to evaluate the quality of our estimates of the association between $Y_i$ and gender identity. Below, $\hat{\theta}$ refers to the simulated values (estimates) of the odds ratio, $\theta$ refers to the true value of the odds ratio, and $E$ refers to the expectation operation. Also, bars above indicate means, and hats indicate estimates. 
 
-Bias is a measure of how far an estimator is from the true value, and the formula is given below. 
+Bias is a measure of how far an estimate is from the true value, and the formula is given below. 
 $$
 Bias(\hat{\theta})=\mathrm{E}[\hat{\theta_i}-\theta]\\
 $$
-The estimated bias, based on N estimates of $\theta$ is: 
+
+The estimated bias, based on N  $\theta_i$ estimates of $\theta$, is: 
 
 $$
 \hat{Bias(\hat{\theta})}=\frac{\sum{[\hat{\theta_i}-\theta}]}{N}
 $$
 
-Variance is a measure of the spread of the estimates, and is given below.
+Variance is a measure of the spread of the distribution of the estimate or statistic, and is given below.
 
 $$
 Var(\hat{\theta})=\mathrm{E}\bigg[(\hat{\theta_i}-\mathrm{E}[\theta_i])^2\bigg]
 $$
-The estiamted varias, based on estimates of $\theta$, $\theta_i$ is:
+The estimated variance, based on N$\theta_i$ estimates of $\theta$, is:
 
 $$
 \hat{Var(\hat{\theta})}=\frac{\sum_i({\hat{\theta_i}-\bar{\hat{\theta}_i}})^2}{N-1}
 $$
 
+The mean squared error is the expectation of the estimate minus the true value, squared. It can actually be decomposed into the variance and bias, as shown below.
 $$
-MSE(\hat{\theta})=\mathrm{E}\bigg[(\hat{\theta_i}-\theta)^2\bigg]\\
+MSE(\hat{\theta})=\mathrm{E}\bigg[(\hat{\theta_i}-\theta)^2\bigg]=Var(\hat{\theta})+Bias^2({\hat{\theta}})
 $$
+Given this decomposition, you can view the MSE as a summary measure of the overal performance of your estimator.
+The estimated MSE, based on N $\theta_i$ estimates of $\theta$, is:
+
 $$
-\hat{MSE(\hat{\theta})}=\frac{\sum_i({\hat{\theta_i}-\theta})^2}{N-1}
+\hat{MSE(\hat{\theta})}=\frac{\sum_i({\hat{\theta_i}-\theta})^2}{N}
 $$
+
+The last summary measure we will calculate is the coverage probability. This is the probability that the confidence interval corresponding to your estimate spans (includes) the true value, in this case, the true OR. This can be estimated by the proportion of the 1,000 simulated confidence interals that include the true OR under each scenario. We calculate the standard errors used to estimate the confidence interval with the delta method. This is a statistical method that allows you to estimate the distribution of a function of a statistics that is known to be asymptotical normal. For more details, read this article [https://www.wikiwand.com/en/Delta_method].
+
+
+### Analysis and Results
 
 
 
+For the analysis, I will create matrices that correspond to all the different parameters i'll need for the various scenarios.
 
-### Results
+```{r, simulation parameters}
+#parameters to specify the true outcome model
+betas<-rbind(c(-2.302,log(1.5)),c(-2.302,log(3.0)),c(-2.302,log(4.5)),c(-2.302,log(6)))
+effect_scenarios<-data.frame(Strength=c("Mild","Moderate", "Strong","Severe"),betas,exp(betas[,2]))
+colnames(effect_scenarios)<-c("Strength of Association","Beta_0","Beta_1", "True OR")
+kable(effect_scenarios,caption="Table 1: Parameters for True Outcome Model")
+#parameters to specify the 
+alphas<-rbind(c(-2.302,0),c(-2.302,1.0995),c(-2.302,1.6095),c(-2.302,1.946))
+miss_scenarios<-data.frame(Misclassification=c("Mild","Moderate", "Strong","Severe"),alphas,apply(alphas,1,function(x){round(exp(sum(x)),2)}))
+colnames(miss_scenarios)<-c("Misclassification","alpha_0","alpha_1","Misclassification Probability")
+kable(miss_scenarios,caption="Table 2: Parameters for Misclassification Model")
+
+```
+
+
+
+Below is the function to simulate the data for a given scenario, store the estimates ($\hat{\mathrm{OR}}$) for each simulated data set, as well as the delta method standard errors. Also, throughout the code below we use matrix multiplication to obtain linear combinatios of the simulated variables and parameters to improve computational efficienty and reduce the need for loops.
+```{r simulation_function}
+
+sim<-function(j,k,N=10^3,n=10^3,pi_G=0.10,Betas=betas,Alphas=alphas){ 
+  #j gives the row corresponding to the outcome scenario of interest in Table 1  
+  #k gives the row corresponding to the row of the misclassification scenario of interest in table 2
+  #N is the number of simulated data sets, we set to default at 1,000
+  # n is the number of individuals per simulated data set, we wset to default at 1 million
+  #p_g is the prevalence of transgender identity in the simulated population, we set to default at 1%
+  #betas and alphas correspond to Tables 1 and 2 above 
+  expit<-function(x)(exp(x)/(1+exp(x)))#writing expit functino
+  estimates<-data.frame(matrix(NA,N,2)) #storage matrix for coefficients and standard errors of interest
+  colnames(estimates)<-c("est","se") #estimated coefficients under misclassification
+  for(i in 1:N){
+    G<-rbinom(n,size=1,prob=pi_G)#Gender
+    data_sim<-data.frame(Intercept=rep(1,n),G=G)#X matrix for observed outcome
+    X<-as.matrix(data_sim)
+    data_sim$probs_Y<-expit(X%*%Betas[j,])#probability for simulated outcome
+    data_sim$Y<-rbinom(n=n,size=1,prob=data_sim$probs_Y) #simulated outcome
+   
+    X2<-as.matrix(data_sim[,c("Intercept","Y")])#x matrix for misclassification
+    data_sim$probs_M<-data_sim$G*expit(X2%*%Alphas[k,])#prob for mislassification
+    data_sim$M<-rbinom(n=n,size=1,data_sim$probs_M) #misclassfcation
+    data_sim$G_star<-data_sim$M*(1-data_sim$G)+(1-data_sim$M)*(data_sim$G)#observed gender
+    model<-glm(Y~G_star,family=binomial(link="logit"),data=data_sim)#observed model 
+   sigma<-vcov(model)
+   estimates[i,1]<-model$coefficients[2] #storing gamma_1, beta for outcome under misclassification
+   estimates[i,2]<-sqrt(vcov(model)[2,2])
+    
+    }
+return(estimates)
+}
+
+
+#writing loop that will go through all the scenarios and store them in a single list
+key<-c() #key will be used to identify which scenario is in which list
+for(j in 1:4){
+  for(k in 1:4){
+    i<-i+1 #indexes the key
+    results[[i]]<-sim(j=j,k=k)
+   key[i]<-paste(paste0("True OR=",effect_scenarios$`True OR`[j]),paste0("Misclassification Prob=",miss_scenarios$`Misclassification Probability`[k]))
+  }
+}
+
+scen_analysis<-function(scen,target){
+est<-exp(scen[,c(1,3,5)])
+se<-est*scen[,c(2,4,6)]
+q<-qnorm(0.975)
+low_int<-est-q*se
+high_int<-est+q*se
+variance<-round(apply(est,2,var),4)
+bias<-est
+SE<-est
+coverage<-est
+for(i in 1:3){
+ bias[,i]<-bias[,i]-target[i]
+ SE[,i]<-(SE[,i]-target[i])^2
+ coverage[,i]<-ifelse((low_int[,i]<=target[i] & high_int[,i]>=target[i]), 1,0)
+}
+mean_bias<-apply(bias,2,mean)
+mean_bias<-paste0(round(mean_bias,4)," (",round(mean_bias/target*100,2),"%)")
+MSE<-round(apply(SE,2,mean),4)
+coverage_prob<-round(apply(coverage,2,mean),4)
+scen_summary<-data.frame(rbind(mean_bias,variance,MSE,coverage_prob))
+colnames(scen_summary)<-c("OR1","OR2","OR3")
+rownames(scen_summary)<-c("Bias","Variance","MSE","Coverage")
+return(list(summary=scen_summary,ORS=est))
+}
+
+#Violin plot
+N<-1000
+miss<-c(rep("None",N),rep("Mild",N),rep("Moderate",N),rep("Severe",N))
+miss<-factor(miss,levels=c("None","Mild","Moderate","Severe"),ordered = T)
+miss<-rep(miss,3)
+group<-c(paste0(miss,c(rep(1,4000),rep(2,4000),rep(3,4000))))
+levs<-c(paste0(rep(c("None","Mild","Moderate","Severe"),3),c(rep(1,4),rep(2,4),rep(3,4))))
+group<-factor(group,levels=levs,ordered=T)
+
+
+
+library(Hmisc)
+violin1<-ggplot(OR1,aes(x=group,y=OR))+
+  theme_minimal()+
+  theme(plot.title = element_text(hjust = 0.5))+
+  theme(title=element_text(size=17.5))+
+  theme(axis.title=element_text(size=15))+
+  theme(axis.text=element_text(size=10))+
+  geom_violin(show.legend = FALSE)+
+  stat_summary(fun.data=mean_sdl, geom="pointrange", color="black")+
+  xlab("Strength of Misclassification")+
+  ylab("Odds Ratio")+
+  geom_text(x=2.5,y=3,label="Mild Effect",size=5)+
+  geom_text(x=6.5,y=4,label="Moderate Effect",size=5)+
+  geom_text(x=10.5,y=4,label="Strong Effect",size=5)+
+  ggtitle("OR1: Transgender White vs Cisgender White")+
+  scale_x_discrete(breaks=levels(OR1$group),labels=rep(c("None","Mild","Moderate","Severe"),3))+
+  geom_segment(aes(x=0,y=truth[1,1],xend=4.5,yend=truth[1,1]),col="black",linetype=2,show.legend=FALSE)+
+  geom_vline(xintercept=4.5)+
+  geom_segment(aes(x=4.5,y=truth[1,2],xend=8.5,yend=truth[1,2]),col="black",linetype=2,show.legend=FALSE)+
+  geom_vline(xintercept=8.5)+
+  geom_segment(aes(x=8.5,y=truth[1,3],xend=12.5,yend=truth[1,3]),col="black",linetype=2,show.legend=FALSE)
+```
+
+
 
 
 Table 1 shows the summary statistics for all scenarios and odds ratios. For all ORs, the estimates are unbiased when the there is no misclassification (percent bias between -0.07% to 0.18%). For OR1, comparing White transgender to White cisgender groups, the bias in the estimates increases with the strength of transgender misclassification, specifically a downward bias of 5.58% downward under mild misclassification to 22.39% downward bias under severe misclassification with a mild effect (True OR: 1.51). Similar results for bias were found with for moderate effect (True OR: 2.01) and strong effect (True OR: 3.00). However, the decrease in coverage probability differed by strength of effect and strength of misclassification.  With the mild effect, the coverage probability decreased from 0.96 with no misclassification, to 0.646, 0.03, and 0.002 with mild, moderate, and severe misclassification, respectfully. With stronger effect sizes, the rate of decline in coverage probability was steeper, with a drop to 0.56 in mild misclassification for moderate effect size, and 0.456 with strong effect size. The distribution of OR estimates for all effect and misclassification strengths, across all scenarios is shown in the violin plot for Figure 2. 
 Results for OR2, comparing transgender Blacks to cisgender Whites were similar to OR1. Across all effect sizes for OR2, bias increased with increasing misclassification, from around -16% at mild misclassification to around -33% with severe misclassification. Similar with OR1 coverage probability declines with increasing misclassification, except, between moderate and severe misclassification, across all effect strengths, where for mild effect the coverage improves from 0.237 to 0.392, and strong effect it improves from 0.09 to 0.197. This occurs concurrently with increases in variance and mean squared error (Table 1). 
-
-For OR3, comparing transgender Blacks to transgender Whites, bias increases from mild to moderate misclassification strengths from around -11% to around -16% across all effect strengths. However, the bias declined from moderate to severe to around -13%. Across all effect sizes, the variance and MSE increases with increased misclassification error. 
 
 
 
