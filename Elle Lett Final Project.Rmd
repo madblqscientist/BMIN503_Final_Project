@@ -167,7 +167,7 @@ Below is the function to simulate the data for a given scenario, store the estim
 
 ```{r}
 
-sim<-function(j,k,N=10^3,n=10^3,pi_G=0.10,Betas=betas,Alphas=alphas,no_miss=FALSE){ 
+sim<-function(j,k,N=10^3,n=10^6,pi_G=0.01,Betas=betas,Alphas=alphas,no_miss=FALSE){ 
   #j gives the row corresponding to the outcome scenario of interest in Table 1  
   #k gives the row corresponding to the row of the misclassification scenario of interest in table 2
   #N is the number of simulated data sets, we set to default at 1,000
@@ -216,7 +216,7 @@ for(j in 1:3){
   }
 }
 
-
+save(results,file="./sim_results.RData")
 #function to analyze data for each scenario
 scen_analysis<-function(scen,target){
   #OR estimates
