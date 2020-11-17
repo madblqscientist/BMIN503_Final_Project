@@ -45,7 +45,7 @@ In our study we will simulate the effect of misclassification on the bias of est
 ***Data Generation Mechanism***
 
 
-Part 1: Simulate n=1,000,000 individuals
+Part 1: Simulate n=1,000,000 individuals (size selected to be comparable to data sets based on EHR data or administrative claims)
 
 1. Simulate Gender Identity $G_i$
 
@@ -86,7 +86,7 @@ $$
 G^*_i=M_i(1-G_i)+(1-M_i)G_i
 $$
 
-4. Fit the outcome model based on the simulated data and observed gender, and estiamte the observed association between the outcome and gender identity $\hat{\mathrm{OR}}$
+4. Fit the outcome model based on the simulated data and observed gender, and estimate the observed association between the outcome and gender identity $\hat{\mathrm{OR}}$
 
 
 $$
@@ -101,7 +101,7 @@ $$
 
 ***Simulation Scenarios***
 
-In studies using claims data, the percentage of individuals meeting the diagnosis code-based criteria has been reported to be as low as 0.026% which suggests potentially very severe misclassification, given the order of magnitude difference between the observed transgender population in these national databases, and the estimated population frequency of transgender individuals. Therefore, we test a broad range of misclassification probabilities with the probability of misclassification ranging from 10%, 30%, 50%, and 70%. Lastly, we simulate bias under a wide range of estimated effect sizes, from 1.50 to 6.00, because prior studies have estimated effect sizes in transgender health inequities as high as 8.5, comparing the odds of mental health diagnoses across gender identities.
+In studies using claims data, the percentage of individuals meeting the diagnosis code-based criteria has been reported to be as low as 0.026% which suggests potentially very severe misclassification, given the order of magnitude difference between the observed transgender population in these national databases, and the estimated population frequency of transgender individuals. Therefore, we test a broad range of misclassification probabilities with the probability of misclassification ranging from 0%, 25%, 50%, and 75%. Lastly, we simulate bias under a wide range of estimated effect sizes, from 1.50 to 5.00, because prior studies have estimated effect sizes in transgender health inequities as high as 8.5, comparing the odds of mental health diagnoses across gender identities.
  
 ***Analysis***
 
@@ -151,24 +151,23 @@ For the analysis, I will create matrices that correspond to all the different pa
 
 ```{r, simulation parameters}
 #parameters to specify the true outcome model
-betas<-rbind(c(-2.302,log(1.5)),c(-2.302,log(3.0)),c(-2.302,log(4.5)),c(-2.302,log(6)))
-effect_scenarios<-data.frame(Strength=c("Mild","Moderate", "Strong","Severe"),betas,exp(betas[,2]))
+betas<-rbind(c(-2.302,log(1.5)),c(-2.302,log(3.0)),c(-2.302,log(5)))
+effect_scenarios<-data.frame(Strength=c("Mild","Moderate", "Strong"),betas,exp(betas[,2]))
 colnames(effect_scenarios)<-c("Strength of Association","Beta_0","Beta_1", "True OR")
 kable(effect_scenarios,caption="Table 1: Parameters for True Outcome Model")
 #parameters to specify the 
-alphas<-rbind(c(-2.302,0),c(-2.302,1.0995),c(-2.302,1.6095),c(-2.302,1.946))
-miss_scenarios<-data.frame(Misclassification=c("Mild","Moderate", "Strong","Severe"),alphas,apply(alphas,1,function(x){round(exp(sum(x)),2)}))
+alphas<-rbind(c(-2.302,0.93),c(-2.302,1.6095),c(-2.302,2.02))
+miss_scenarios<-data.frame(Misclassification=c("Mild", "Moderate","Strong"),alphas,apply(alphas,1,function(x){round(exp(sum(x)),2)}))
 colnames(miss_scenarios)<-c("Misclassification","alpha_0","alpha_1","Misclassification Probability")
 kable(miss_scenarios,caption="Table 2: Parameters for Misclassification Model")
 
 ```
 
+Below is the function to simulate the data for a given scenario, store the estimates ($\hat{\mathrm{OR}}$) for each simulated data set, as well as the delta method standard errors. Also, throughout the code below we use matrix multiplication to obtain linear combinations of the simulated variables and parameters to improve computational efficiency and reduce the need for loops. The end result of this code is a list that contains the estimates and standard errors for all the $\hat{\gamma}_1$, and a table that provides the summary statistics (bias, variance, MSE, and coverage probability) for each scenario.
 
+```{r}
 
-Below is the function to simulate the data for a given scenario, store the estimates ($\hat{\mathrm{OR}}$) for each simulated data set, as well as the delta method standard errors. Also, throughout the code below we use matrix multiplication to obtain linear combinatios of the simulated variables and parameters to improve computational efficienty and reduce the need for loops.
-```{r simulation_function}
-
-sim<-function(j,k,N=10^3,n=10^3,pi_G=0.10,Betas=betas,Alphas=alphas){ 
+sim<-function(j,k,N=10^3,n=10^3,pi_G=0.10,Betas=betas,Alphas=alphas,no_miss=FALSE){ 
   #j gives the row corresponding to the outcome scenario of interest in Table 1  
   #k gives the row corresponding to the row of the misclassification scenario of interest in table 2
   #N is the number of simulated data sets, we set to default at 1,000
@@ -184,102 +183,144 @@ sim<-function(j,k,N=10^3,n=10^3,pi_G=0.10,Betas=betas,Alphas=alphas){
     X<-as.matrix(data_sim)
     data_sim$probs_Y<-expit(X%*%Betas[j,])#probability for simulated outcome
     data_sim$Y<-rbinom(n=n,size=1,prob=data_sim$probs_Y) #simulated outcome
-   
+    if(no_miss==TRUE){
+    model<-glm(Y~G,family=binomial(link="logit"),data=data_sim)
+      }else{
     X2<-as.matrix(data_sim[,c("Intercept","Y")])#x matrix for misclassification
     data_sim$probs_M<-data_sim$G*expit(X2%*%Alphas[k,])#prob for mislassification
     data_sim$M<-rbinom(n=n,size=1,data_sim$probs_M) #misclassfcation
     data_sim$G_star<-data_sim$M*(1-data_sim$G)+(1-data_sim$M)*(data_sim$G)#observed gender
     model<-glm(Y~G_star,family=binomial(link="logit"),data=data_sim)#observed model 
+      }
    sigma<-vcov(model)
    estimates[i,1]<-model$coefficients[2] #storing gamma_1, beta for outcome under misclassification
    estimates[i,2]<-sqrt(vcov(model)[2,2])
-    
     }
 return(estimates)
 }
 
-
 #writing loop that will go through all the scenarios and store them in a single list
-key<-c() #key will be used to identify which scenario is in which list
-for(j in 1:4){
-  for(k in 1:4){
+key<-rep(NA,12) #key will be used to identify which scenario is in which list
+i<-0#counter to index key 
+results<-list()#empty list
+for(j in 1:3){
+  for(k in 0:3){
     i<-i+1 #indexes the key
+    if(k==0){
+       results[[i]]<-sim(j=j,no_miss=TRUE)
+       key[i]<-paste(paste0("True OR=",effect_scenarios$`True OR`[j]),", ","Misclassification Prob=0")
+    }else{
     results[[i]]<-sim(j=j,k=k)
-   key[i]<-paste(paste0("True OR=",effect_scenarios$`True OR`[j]),paste0("Misclassification Prob=",miss_scenarios$`Misclassification Probability`[k]))
+    key[i]<-paste(paste0("True OR=",effect_scenarios$`True OR`[j]),", ", paste0("Misclassification Prob=",miss_scenarios$`Misclassification Probability`[k] ))
+    }
   }
 }
 
+
+#function to analyze data for each scenario
 scen_analysis<-function(scen,target){
-est<-exp(scen[,c(1,3,5)])
-se<-est*scen[,c(2,4,6)]
+  #OR estimates
+est<-exp(scen[,1])
+#delta method Standard Errors 
+se<-est*scen[,2]
+#quantile from standard normal distribution confidence interval 
 q<-qnorm(0.975)
+#lower bound of confidence interval
 low_int<-est-q*se
+#higher bound of confidence interval
 high_int<-est+q*se
-variance<-round(apply(est,2,var),4)
-bias<-est
-SE<-est
-coverage<-est
-for(i in 1:3){
- bias[,i]<-bias[,i]-target[i]
- SE[,i]<-(SE[,i]-target[i])^2
- coverage[,i]<-ifelse((low_int[,i]<=target[i] & high_int[,i]>=target[i]), 1,0)
+#variance of estimated ORs
+variance<-round(var(est),4)
+#bias of estimated ORs
+bias<-est-target
+#squared error for each estiamte
+SE<-(est-target)^2
+#sample bias estiamte
+mean_bias<-mean(bias) 
+# percent of effect for sample bias estimate
+mean_bias<-paste0(round(mean_bias,4)," (",round(mean_bias/target*100,2),"%)") 
+#MSE estimate
+MSE<-round(mean(SE),4)
+#coverage per scenario
+coverage<-ifelse((low_int<=target & high_int>=target), 1,0)
+#coverage probability
+coverage_prob<-round(mean(coverage),4)
+return(c(mean_bias,variance, MSE, coverage_prob))
 }
-mean_bias<-apply(bias,2,mean)
-mean_bias<-paste0(round(mean_bias,4)," (",round(mean_bias/target*100,2),"%)")
-MSE<-round(apply(SE,2,mean),4)
-coverage_prob<-round(apply(coverage,2,mean),4)
-scen_summary<-data.frame(rbind(mean_bias,variance,MSE,coverage_prob))
-colnames(scen_summary)<-c("OR1","OR2","OR3")
-rownames(scen_summary)<-c("Bias","Variance","MSE","Coverage")
-return(list(summary=scen_summary,ORS=est))
+
+#storing all the information 
+results_stats<-data.frame(Scenario=key,Bias=rep(NA,12),Variance=rep(NA,12),MSE=rep(NA,12),`Coverage Probability`=rep(NA,12))
+target_index<-c(rep(1,4),rep(2,4),rep(3,4))
+for(i in 1:12){
+ results_stats[i,2:5]<-scen_analysis(results[[i]],target=effect_scenarios$`True OR`[target_index[i]])
 }
 
-#Violin plot
-N<-1000
-miss<-c(rep("None",N),rep("Mild",N),rep("Moderate",N),rep("Severe",N))
-miss<-factor(miss,levels=c("None","Mild","Moderate","Severe"),ordered = T)
-miss<-rep(miss,3)
-group<-c(paste0(miss,c(rep(1,4000),rep(2,4000),rep(3,4000))))
-levs<-c(paste0(rep(c("None","Mild","Moderate","Severe"),3),c(rep(1,4),rep(2,4),rep(3,4))))
-group<-factor(group,levels=levs,ordered=T)
-
-
-
-library(Hmisc)
-violin1<-ggplot(OR1,aes(x=group,y=OR))+
-  theme_minimal()+
-  theme(plot.title = element_text(hjust = 0.5))+
-  theme(title=element_text(size=17.5))+
-  theme(axis.title=element_text(size=15))+
-  theme(axis.text=element_text(size=10))+
-  geom_violin(show.legend = FALSE)+
-  stat_summary(fun.data=mean_sdl, geom="pointrange", color="black")+
-  xlab("Strength of Misclassification")+
-  ylab("Odds Ratio")+
-  geom_text(x=2.5,y=3,label="Mild Effect",size=5)+
-  geom_text(x=6.5,y=4,label="Moderate Effect",size=5)+
-  geom_text(x=10.5,y=4,label="Strong Effect",size=5)+
-  ggtitle("OR1: Transgender White vs Cisgender White")+
-  scale_x_discrete(breaks=levels(OR1$group),labels=rep(c("None","Mild","Moderate","Severe"),3))+
-  geom_segment(aes(x=0,y=truth[1,1],xend=4.5,yend=truth[1,1]),col="black",linetype=2,show.legend=FALSE)+
-  geom_vline(xintercept=4.5)+
-  geom_segment(aes(x=4.5,y=truth[1,2],xend=8.5,yend=truth[1,2]),col="black",linetype=2,show.legend=FALSE)+
-  geom_vline(xintercept=8.5)+
-  geom_segment(aes(x=8.5,y=truth[1,3],xend=12.5,yend=truth[1,3]),col="black",linetype=2,show.legend=FALSE)
+kable(results_stats, caption="Table 3: Summary Statistics by Scenario for Simulation Study")
 ```
 
 
 
 
-Table 1 shows the summary statistics for all scenarios and odds ratios. For all ORs, the estimates are unbiased when the there is no misclassification (percent bias between -0.07% to 0.18%). For OR1, comparing White transgender to White cisgender groups, the bias in the estimates increases with the strength of transgender misclassification, specifically a downward bias of 5.58% downward under mild misclassification to 22.39% downward bias under severe misclassification with a mild effect (True OR: 1.51). Similar results for bias were found with for moderate effect (True OR: 2.01) and strong effect (True OR: 3.00). However, the decrease in coverage probability differed by strength of effect and strength of misclassification.  With the mild effect, the coverage probability decreased from 0.96 with no misclassification, to 0.646, 0.03, and 0.002 with mild, moderate, and severe misclassification, respectfully. With stronger effect sizes, the rate of decline in coverage probability was steeper, with a drop to 0.56 in mild misclassification for moderate effect size, and 0.456 with strong effect size. The distribution of OR estimates for all effect and misclassification strengths, across all scenarios is shown in the violin plot for Figure 2. 
-Results for OR2, comparing transgender Blacks to cisgender Whites were similar to OR1. Across all effect sizes for OR2, bias increased with increasing misclassification, from around -16% at mild misclassification to around -33% with severe misclassification. Similar with OR1 coverage probability declines with increasing misclassification, except, between moderate and severe misclassification, across all effect strengths, where for mild effect the coverage improves from 0.237 to 0.392, and strong effect it improves from 0.09 to 0.197. This occurs concurrently with increases in variance and mean squared error (Table 1). 
+Table 3 shows the summary statistics for all scenarios and odds ratios. 
 
 
+```{r}
+#Violin plot
+#creating single vector with all the estimates for a given effect 
+N<-1000
+miss<-c(rep("None (0%)",N),rep("Mild (25%)",N),rep("Moderate (50%)",N),rep("Severe (75%)",N))
+miss<-factor(miss,levels=c("None (0%)","Mild (25%)","Moderate (50%)","Severe (75%)"),ordered = T)
+OR_Mild<-c();for(i in 1:4){OR_Mild<-c(OR_Mild,exp(results[[i]][,1]))}
+mild_effect<-data.frame(OR=OR_Mild,Misclassification=miss)
+OR_Mod<-c();for(i in 5:8){OR_Mod<-c(OR_Mod,exp(results[[i]][,1]))}
+mod_effect<-data.frame(OR=OR_Mod,Misclassification=miss)
+OR_Strong<-c();for(i in 9:12){OR_Strong<-c(OR_Strong,exp(results[[i]][,1]))}
+strong_effect<-data.frame(OR=OR_Strong,Misclassification=miss)
+
+library(Hmisc)
+violin1<-ggplot(mild_effect,aes(x=Misclassification,y=OR,fill=Misclassification))+
+  theme_minimal()+
+  theme(title=element_text(size=10))+
+  theme(axis.title=element_text(size=10))+
+  theme(axis.text=element_text(size=10))+
+  geom_violin(show.legend = TRUE)+
+  geom_hline(yintercept=1.5,color="red")+
+  stat_summary(fun.data=mean_sdl, geom="pointrange", color="grey")+
+  xlab("Strength of Misclassification")+
+  ylab("Odds Ratio")+
+  ggtitle("OR Estimates under Misclassification of Transgender Individuals with TRUE OR=1.5")
+
+
+violin2<-ggplot(mod_effect,aes(x=Misclassification,y=OR,fill=Misclassification))+
+  theme_minimal()+
+  theme(title=element_text(size=10))+
+  theme(axis.title=element_text(size=10))+
+  theme(axis.text=element_text(size=10))+
+  geom_violin(show.legend = TRUE)+
+  geom_hline(yintercept=3.0,color="red")+
+  stat_summary(fun.data=mean_sdl, geom="pointrange", color="grey")+
+  xlab("Strength of Misclassification")+
+  ylab("Odds Ratio")+
+  ggtitle("OR Estimates under Misclassification of Transgender Individuals with TRUE OR=3")
+
+violin3<-ggplot(strong_effect,aes(x=Misclassification,y=OR,fill=Misclassification))+
+  theme_minimal()+
+  theme(title=element_text(size=10))+
+  theme(axis.title=element_text(size=10))+
+  theme(axis.text=element_text(size=10))+
+  geom_violin(show.legend = TRUE)+
+  geom_hline(yintercept=5,color="red")+
+  stat_summary(fun.data=mean_sdl, geom="pointrange", color="grey")+
+  xlab("Strength of Misclassification")+
+  ylab("Odds Ratio")+
+  ggtitle("OR Estimates under Misclassification of Transgender Individuals with TRUE OR=5")
+
+violin1
+violin2
+violin3
+```
 
 ### Conclusion
 
-Studies using EHR and administrative claims data to estimate transgender health inequities are growing in popularity. These studies have the potential to set policy agendas on the institutional level because of their large size when using local EHRs and on the national level when using large claims databases, because of their regional diversity. Therefore, these studies are high priority and should continue to expand the scientific record and provide more comprehensive data on transgender health as we work toward achieving health equity. However, our results indicate that comparisons between transgender and cisgender groups using proxy measures subject to misclassification are biased and must be interpreted carefully.13,14,28 Specifically, such studies are most suited for identifying strong associations but may lead to false negatives with moderate or mild associations. Further, the associations that are captured are underestimated under misclassification, so results from such studies must be interpreted with that limitation. Lastly, when centering racial/ethnic minority subpopulations within the transgender community, estimated associations have decreased precision due to the combination of gender identity misclassification and small substrata sample size.
+Studies using EHR and administrative claims data to estimate transgender health inequities are growing in popularity. These studies have the potential to set policy agendas on the institutional level because of their large size when using local EHRs and on the national level when using large claims databases, because of their regional diversity. Therefore, these studies are high priority and should continue to expand the scientific record and provide more comprehensive data on transgender health as we work toward achieving health equity. However, our results indicate that comparisons between transgender and cisgender groups using proxy measures subject to misclassification are biased and must be interpreted carefully.Specifically, such studies are most suited for identifying strong associations but may lead to false negatives with moderate or mild associations. Further, the associations that are captured are underestimated under misclassification, so results from such studies must be interpreted with that limitation. Given the condition of misclassification, EHR- and claims- data based studies should be viewed as screening tools for only the most disparate health outcomes between transgender and cisgender populations, and researchers should not deprioritize health outcomes with null findings based on these data alone.
 
-Given the condition of misclassification, EHR- and claims- data based studies should be viewed as screening tools for only the most disparate health outcomes between transgender and cisgender populations, and researchers should not deprioritize health outcomes with null findings based on these data alone. Similarly, studies that are not concerned with comparisons but use diagnosis codes to generate cohorts of transgender individuals to estimate prevalence are subject to selection bias such that their results are not generalizable to the transgender population at large. 12,29–31 The impact of this selection bias is hard to predict but given the decreased healthcare access,3,4 and socioeconomic resources faced by transgender groups, it is likely that the most vulnerable subgroups within the transgender community are differentially misclassified as cisgender, which would also bias results toward the null. 
-
-The ideal solution to the misclassification problem is clear; for EHR data, healthcare systems should routinely ascertain patient-reported gender identity and these demographics should be included, as suggested by the 2011 recommendations from the Institute of Medicine (IOM)32 and the Joint Commission, 33 and required for all health care systems certified under the federal Stage 3 Meaningful Use Guidelines.34  Despite these recommendations, uptake of sexual orientation and gender identity (SOGI) data in the EHR has been poor, with a recent study of over 1300 US health systems indicating missing SOGI data for 63% of patients.35  Several reports have offered guidelines to address challenges on SOGI data collection implementation with recommendations for staff training and electronic record customization.36,37 Additionally, large claims databases such as IBM Marketscan38 and Optum Labs39 should include fields for SOGI data for health services researchers, to allow for precise, unbiased estimates of transgender health inequities using these data sources.  
