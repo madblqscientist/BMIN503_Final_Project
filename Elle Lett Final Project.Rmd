@@ -16,31 +16,36 @@ library(knitr)
 library(Hmisc)
 library(ggplot2)
 ```  
+**Note: This work is an early version of a manuscript that is currently under review at an academic journal. Please DO NOT circulate.**
+
+
 
 ### Overview
 
 
 **Background**: Electronic health records (EHRs) and administrative claims databases are increasingly being used to study the distribution of health outcomes among transgender individuals. However, gender identity is not comprehensively reported in these data sources so diagnosis codes are used as a proxy to identify transgender subgroups within the data. To date, no study has characterized the bias introduced by misclassification of gender identity based on this proxy metric.
 
-**Objective**:  The goal of this study is to estimate the bias introduced by misclassification of gender identity in estimates of health inequities among transgender individuals and multiply marginalized racial/ethnic subgroups. 
+**Objective**:  The goal of this study is to estimate the bias introduced by misclassification of gender identity in estimates of health inequities among transgender individuals. 
 
-**Data**: We use simulations to generate data subject to differential misclassification error related to gender identity and racial identity, and estimate the bias, mean squared error, and coverage probability for the observed odds ratios comparing the various groups.
+**Data**: We use simulations to generate data subject to differential misclassification error related to gender identity, and estimate the bias,variance, mean squared error (MSE), and coverage probability for the observed odds ratios comparing the cisgender and transgender groups.
 
 **Faculty Input**: I spoke with John Holmes who provided some input on how to visiualize the results, and Drs. Jaya Asyola and Nadia Dowshen who gave input on what information to use parametrize the simulations. 
 
+**Link to Github Repository**: [https://github.com/madblqscientist/BMIN503_Final_Project]
+
 ### Introduction 
 
-  There is an extensive body of literature that documents the severe health inequities experienced by transgender individuals, or persons who identify with a gender that is different than the sex they were assigned at birth. These inequities include mental health disorders, such as suicidality, anxiety, depression, and ADHD, negative experiences of discrimination and victimization including healthcare discrimination, sexual violence, and psychosocial and behavioral health-related factors including behaviors associated with HIV and other STIs. The data underlying these studies are sourced from several settings: 1) small, site or regional cohorts,  2) national surveys that ascertained transgender identity and 3) electronic health records or large claims databases. The first data source has the benefit of being derived from studies that are designed to center the specific needs of transgender individuals and are more likely to assess outcomes relevant to this population with the appropriate granularity. However, these studies rarely include cisgender comparison groups excluding the possibility of obtaining within study estimates comparing the distribution of outcomes between cisgender and transgender groups to approximate the effect of transphobia on health outcomes.  The latter two data sources often contain both cisgender and transgender groups, thereby allowing association measures to be assessed across groups, or identification of causal estimates when appropriate measures of structural oppression are included. The third category is unique in that you can obtain granular data on specific health outcomes on nationally representative samples. 
+  There is an extensive body of literature that documents the severe health inequities experienced by transgender individuals, or persons who identify with a gender that is different than the sex they were assigned at birth. These inequities include mental health disorders, such as suicidality, anxiety, depression, and ADHD, negative experiences of discrimination and victimization including healthcare discrimination, employment discrimination, housing discrimination, and sexual violence as well as psychosocial and behavioral health-related factors including behaviors associated with HIV and other STIs. The data underlying these studies are sourced from several settings: 1) small, site or regional cohorts,  2) national surveys that ascertained transgender identity and 3) electronic health records or large claims databases. The first data source has the benefit of being derived from studies that are designed to center the specific needs of transgender individuals and are more likely to assess outcomes relevant to this population with the appropriate granularity. However, these studies rarely include cisgender comparison groups excluding the possibility of obtaining within study estimates comparing the distribution of outcomes between cisgender and transgender groups to approximate the effect of transphobia on health outcomes.  The latter two data sources often contain both cisgender and transgender groups, thereby allowing association measures to be assessed across groups, or identification of causal estimates when appropriate measures of structural oppression are included. The third category is unique in that you can obtain granular data on specific health outcomes on nationally representative samples. 
 
-  All studies that have used EHR and claims databases to assess transgender health have used International Classification of Disease (ICD) diagnosis codes for gender dysphoria, occasionally augmented by other relevant diagnosis codes such as “endocrine disorder otherwise not specified” that are enriched in encounters with transgender individuals seeking care. These measures, particularly those for gender dysphoria are highly specific. It is unlikely that an individual who is not transgender would carry these diagnoses in their claims or EHR. However, it is unclear to what degree these algorithms are sensitive, and in fact it is reasonable to assume that they are not. Not all transgender individuals who are seeking medical care will be doing so specifically for gender affirmation, so they are less likely to carry the codes used in the algorithm for identifying transgender individuals. Therefore, these algorithms introduce differential misclassification error between cisgender and transgender individuals which has the potential to bias estimates of health inequities for transgender populations.  To accurately interpret findings from transgender population health studies using EHR and claims, it is necessary to characterize the effect of differential misclassification error introduced by current algorithms used for identifying transgender individuals. 
+  All studies that have used EHR and claims databases to assess transgender health have used International Classification of Disease (ICD) diagnosis codes for gender dysphoria to identify transgender individuals, occasionally augmented by other relevant diagnosis codes such as “endocrine disorder otherwise not specified” that are enriched in encounters with transgender individuals seeking care. These measures, particularly those for gender dysphoria are highly specific. It is unlikely that an individual who is not transgender would carry these diagnoses in their claims or EHR. However, it is unclear to what degree these algorithms are sensitive, and in fact it is reasonable to assume that they are not. Not all transgender individuals who are seeking medical care will be doing so specifically for gender affirmation, so they are less likely to carry the codes used in the algorithm for identifying transgender individuals. Therefore, these algorithms introduce differential misclassification error between cisgender and transgender individuals which has the potential to bias estimates of health inequities for transgender populations.  To accurately interpret findings from transgender population health studies using EHR and claims data, it is necessary to characterize the effect of differential misclassification error introduced by current algorithms used for identifying transgender individuals. 
 
-  This study is interdisciplinary because it encompasses health services research and informatics by addressing a knowledge gap in using EHR and administrative claims data, engages statistics by simulating data and quantifying bias, and social epidemiology by focusing on population health for groups at the intersection of multiple marginalized identities. 
+  This study is interdisciplinary because it encompasses health services research and informatics by addressing a knowledge gap in using EHR and administrative claims data, engages statistics by simulating data and quantifying bias, and social epidemiology by focusing on population health for a marginalized population.
 
 ### Methods
 
 ***Simulation Rationale***
 
-In our study we will simulate the effect of misclassification on the bias of estimated odds ratios (OR) measuring the association of a binary outcome with gender identity comparing cisgender individuals to transgender individuals, where, with some probability, transgender individuals are misclassified as cisgender. We will also consider scenarios in which the outcome are also associated with misclassification of transgender individuals. These scenarios are reasonable if an outcome decreases the likelihood that an individual will be seeking gender-related care such that, in the presence of this outcome, transgender individuals are not likely to carry ICD codes for gender dysphoria or related conditions, because they are being treated for other conditions. These scenarios will allow us to estimate the bias due to misclassification error of transgender individuals in the context of estimating inequities across transgender and cisgender populations.
+In our study we will simulate the effect of misclassification on the bias of estimated odds ratios (OR) measuring the association of a binary outcome with gender identity comparing cisgender individuals to transgender individuals, where, with some probability, transgender individuals are misclassified as cisgender. We will also consider scenarios in which the outcome is  associated with misclassification of transgender individuals. These scenarios are reasonable if an outcome decreases the likelihood that an individual will be seeking gender-related care such that, in the presence of this outcome, transgender individuals are not likely to carry ICD codes for gender dysphoria or related conditions, because they are being treated for other conditions. These scenarios will allow us to estimate the bias due to misclassification error of transgender individuals in the context of estimating inequities across transgender and cisgender populations.
 
 ***Data Generation Mechanism***
 
@@ -49,7 +54,7 @@ Part 1: Simulate n=1,000,000 individuals (size selected to be comparable to data
 
 1. Simulate Gender Identity $G_i$
 
-Acording to a study conducted by the Williams Institute using data from the Behavioral Risk Factor Surveillance System, approximately 0.6% of the adult US population is transgender However, this is likely an underestimate because the BRFSS survey instrument uses a one-question format to identify transgender individuals which has been shown to underestimate the transgender population size by half. Therefore, in our study, we will set the prevalence of the transgender population in the United States to 1\% $\pi_G$. For each person we will randomly sample their gender identity from the Bernoulli distribution, where $G_i=0$ for cisgender, and $G_i=1$ for transgender. 
+According to a study conducted by the Williams Institute using data from the Behavioral Risk Factor Surveillance System, approximately 0.6% of the adult US population is transgender. However, this is likely an underestimate because the BRFSS survey instrument uses a one-question format to identify transgender individuals which has been shown to underestimate the transgender population size by half. Therefore, in our study, we will set the prevalence of the transgender population in the United States to 1\% ($\pi_G=0.01$). For each person we will randomly sample their gender identity from the Bernoulli distribution, where $G_i=0$ for cisgender, and $G_i=1$ for transgender. 
 
 $$
 \pi_{G}=P[G_i=1]=0.01
@@ -60,7 +65,7 @@ $$
 2. Simulate Distribution of Outcome $Y_i$
 
 
-In the next step, conditional on gender, a binary outcome, $Y_i$, for example, depression, is randomly drawn, based on a Bernoulli probability from a logit linear model that includes gender identity. We will specify the intercept term so that the baseline prevalence is approximately 10%, consistent with depression in the overall US population, and very the log-linear slope term $\beta_1$ for different strengths of association between transgender identity and the outcome $\mathrm{OR}$, . Please note that the $expit$ function is the inverse of the $logit$ function, the link function used in logistic regression, the most common approach for modeling binary data. 
+In the next step, conditional on gender, a binary outcome, $Y_i$, for example, depression, is randomly drawn, based on a Bernoulli probability from a logit linear model that includes gender identity. We will specify the intercept term so that the baseline prevalence is approximately 10%, consistent with depression in the overall US population, and vary the log-linear slope term $\beta_1$ for different strengths of association between transgender identity and the outcome ($\mathrm{OR}$), . Please note that the $expit$ function is the inverse of the $logit$ function, the link function used in logistic regression, the most common approach for modeling binary data. 
 
 $$
 \pi_{y,i}=expit[\beta_0+\beta_1G_i]
@@ -101,7 +106,7 @@ $$
 
 ***Simulation Scenarios***
 
-In studies using claims data, the percentage of individuals meeting the diagnosis code-based criteria has been reported to be as low as 0.026% which suggests potentially very severe misclassification, given the order of magnitude difference between the observed transgender population in these national databases, and the estimated population frequency of transgender individuals. Therefore, we test a broad range of misclassification probabilities with the probability of misclassification ranging from 0%, 25%, 50%, and 75%. Lastly, we simulate bias under a wide range of estimated effect sizes, from 1.50 to 5.00, because prior studies have estimated effect sizes in transgender health inequities as high as 8.5, comparing the odds of mental health diagnoses across gender identities.
+In studies using claims data, the percentage of individuals meeting the diagnosis code-based criteria has been reported to be as low as 0.026% which suggests potentially very severe misclassification, given the order of magnitude difference between the observed transgender population in these national databases, and the estimated population frequency of transgender individuals. Therefore, we test a broad range of misclassification probabilities with the probability of misclassification ranging from 0%, 25%, 50%, and 75%. Lastly, we simulate bias under a wide range of estimated effect sizes, 1.50, 3.00, and 5.00, because prior studies have estimated effect sizes in transgender health inequities as high as 8.5, comparing the odds of mental health diagnoses across gender identities.
  
 ***Analysis***
 
@@ -112,7 +117,7 @@ $$
 Bias(\hat{\theta})=\mathrm{E}[\hat{\theta_i}-\theta]\\
 $$
 
-The estimated bias, based on N  $\theta_i$ estimates of $\theta$, is: 
+The estimated bias, based on N, $\theta_i$ estimates of $\theta$, is: 
 
 $$
 \hat{Bias(\hat{\theta})}=\frac{\sum{[\hat{\theta_i}-\theta}]}{N}
@@ -123,7 +128,7 @@ Variance is a measure of the spread of the distribution of the estimate or stati
 $$
 Var(\hat{\theta})=\mathrm{E}\bigg[(\hat{\theta_i}-\mathrm{E}[\theta_i])^2\bigg]
 $$
-The estimated variance, based on N$\theta_i$ estimates of $\theta$, is:
+The estimated variance, based on N,$\theta_i$ estimates of $\theta$, is:
 
 $$
 \hat{Var(\hat{\theta})}=\frac{\sum_i({\hat{\theta_i}-\bar{\hat{\theta}_i}})^2}{N-1}
@@ -134,20 +139,20 @@ $$
 MSE(\hat{\theta})=\mathrm{E}\bigg[(\hat{\theta_i}-\theta)^2\bigg]=Var(\hat{\theta})+Bias^2({\hat{\theta}})
 $$
 Given this decomposition, you can view the MSE as a summary measure of the overal performance of your estimator.
-The estimated MSE, based on N $\theta_i$ estimates of $\theta$, is:
+The estimated MSE, based on N, $\theta_i$ estimates of $\theta$, is:
 
 $$
 \hat{MSE(\hat{\theta})}=\frac{\sum_i({\hat{\theta_i}-\theta})^2}{N}
 $$
 
-The last summary measure we will calculate is the coverage probability. This is the probability that the confidence interval corresponding to your estimate spans (includes) the true value, in this case, the true OR. This can be estimated by the proportion of the 1,000 simulated confidence interals that include the true OR under each scenario. We calculate the standard errors used to estimate the confidence interval with the delta method. This is a statistical method that allows you to estimate the distribution of a function of a statistics that is known to be asymptotical normal. For more details, read this article [https://www.wikiwand.com/en/Delta_method].
+The last summary measure we will calculate is the coverage probability. This is the probability that the confidence interval corresponding to your estimate spans (includes) the true value, in this case, the true OR. This can be estimated by the proportion of the 1,000 simulated confidence intervals that include the true OR under each scenario. We calculate the standard errors used to estimate the confidence interval with the delta method. This is a statistical method that allows you to estimate the distribution of a function of a statistic that is known to be asymptotical normal. For more details, read this article [https://www.wikiwand.com/en/Delta_method].
 
 
 ### Analysis and Results
 
 
 
-For the analysis, I will create matrices that correspond to all the different parameters i'll need for the various scenarios.
+For the analysis, I will create matrices that correspond to all the different parameters I'll need for the various scenarios.
 
 ```{r, simulation parameters}
 #parameters to specify the true outcome model
@@ -163,7 +168,7 @@ kable(miss_scenarios,caption="Table 2: Parameters for Misclassification Model")
 
 ```
 
-Below is the function to simulate the data for a given scenario, store the estimates ($\hat{\mathrm{OR}}$) for each simulated data set, as well as the delta method standard errors. Also, throughout the code below we use matrix multiplication to obtain linear combinations of the simulated variables and parameters to improve computational efficiency and reduce the need for loops. The end result of this code is a list that contains the estimates and standard errors for all the $\hat{\gamma}_1$, and a table that provides the summary statistics (bias, variance, MSE, and coverage probability) for each scenario.
+Below is the function to simulate the data for a given scenario, store the estimates ($\hat{\mathrm{OR}}$) for each simulated data set, as well as the delta method standard errors. Also, throughout the code below I use matrix multiplication to obtain linear combinations of the simulated variables and parameters to improve computational efficiency and reduce the need for loops. The end result of this code is a list that contains the estimates and standard errors for all the $\hat{\gamma}_1$, and a table that provides the summary statistics (bias, variance, MSE, and coverage probability) for each scenario.
 
 ```{r}
 
@@ -202,21 +207,36 @@ return(estimates)
 #writing loop that will go through all the scenarios and store them in a single list
 key<-rep(NA,12) #key will be used to identify which scenario is in which list
 i<-0#counter to index key 
-results<-list()#empty list
 for(j in 1:3){
   for(k in 0:3){
-    i<-i+1 #indexes the key
-    if(k==0){
-       results[[i]]<-sim(j=j,no_miss=TRUE)
-       key[i]<-paste(paste0("True OR=",effect_scenarios$`True OR`[j]),", ","Misclassification Prob=0")
-    }else{
-    results[[i]]<-sim(j=j,k=k)
-    key[i]<-paste(paste0("True OR=",effect_scenarios$`True OR`[j]),", ", paste0("Misclassification Prob=",miss_scenarios$`Misclassification Probability`[k] ))
-    }
+    i<-i+1
+  if(k==0){
+     key[i]<-paste0(paste0("True OR=",effect_scenarios$`True OR`[j]),", ","Misclassification Prob=0")
+  }else{
+   key[i]<-paste0(paste0("True OR=",effect_scenarios$`True OR`[j]),", ", paste0("Misclassification Prob=",miss_scenarios$`Misclassification Probability`[k] )) 
+  }
   }
 }
+##commented out the code to generate the simulated data because it is stored and requires a long time to run
+  #i<-0 counter to index key 
+# results<-list()#empty list
+# for(j in 1:3){
+#   for(k in 0:3){
+#     i<-i+1 #indexes the key
+#     if(k==0){
+#        results[[i]]<-sim(j=j,no_miss=TRUE)
+#        key[i]<-paste(paste0("True OR=",effect_scenarios$`True OR`[j]),", ","Misclassification Prob=0")
+#     }else{
+#     results[[i]]<-sim(j=j,k=k)
+#     key[i]<-paste(paste0("True OR=",effect_scenarios$`True OR`[j]),", ", paste0("Misclassification Prob=",miss_scenarios$`Misclassification Probability`[k] ))
+#     }
+#   }
+# }
 
+
+load("./sim_results.RData")
 save(results,file="./sim_results.RData")
+
 #function to analyze data for each scenario
 scen_analysis<-function(scen,target){
   #OR estimates
@@ -254,14 +274,14 @@ target_index<-c(rep(1,4),rep(2,4),rep(3,4))
 for(i in 1:12){
  results_stats[i,2:5]<-scen_analysis(results[[i]],target=effect_scenarios$`True OR`[target_index[i]])
 }
-
+#write.csv(results_stats,"./Tables and Figures/Table 3_Sim Statistics.csv")
 kable(results_stats, caption="Table 3: Summary Statistics by Scenario for Simulation Study")
 ```
 
 
 
+Table 3 shows the summary statistics for all scenarios and odds ratios. It is clear that the downward bias of the estimates increases, for all three associations strengths (OR= 1.5, 3, or 5), with the bias being 12-13% at with a misclassification probability of 25%, and being as high as 38% with a misclassification probability of 75%. THe variance also increases with the misclassification probability as does the MSE, which is consistent with the decomposition of the MSE into bias and variance. Additionally, the coverage probability is very low with any misclassification with 0% of the confidence intervals capturing the true value with misclassification probability at or above 50%. Importantly, the variance, MSE, and coverage probability are all sample size dependent, with larger sample sizes leading to smaller confidence intervals and lower variance. However, the sample size of these simulations, 1,000,000 observations, is on the lower end of studies using EHR and administrative claims data so the observed poor coverage probability is realistic.
 
-Table 3 shows the summary statistics for all scenarios and odds ratios. 
 
 
 ```{r}
@@ -277,7 +297,7 @@ mod_effect<-data.frame(OR=OR_Mod,Misclassification=miss)
 OR_Strong<-c();for(i in 9:12){OR_Strong<-c(OR_Strong,exp(results[[i]][,1]))}
 strong_effect<-data.frame(OR=OR_Strong,Misclassification=miss)
 
-library(Hmisc)
+
 violin1<-ggplot(mild_effect,aes(x=Misclassification,y=OR,fill=Misclassification))+
   theme_minimal()+
   theme(title=element_text(size=10))+
@@ -288,7 +308,7 @@ violin1<-ggplot(mild_effect,aes(x=Misclassification,y=OR,fill=Misclassification)
   stat_summary(fun.data=mean_sdl, geom="pointrange", color="grey")+
   xlab("Strength of Misclassification")+
   ylab("Odds Ratio")+
-  ggtitle("OR Estimates under Misclassification of Transgender Individuals with TRUE OR=1.5")
+  ggtitle("OR Estimates under Misclassification, TRUE OR=1.5")
 
 
 violin2<-ggplot(mod_effect,aes(x=Misclassification,y=OR,fill=Misclassification))+
@@ -301,7 +321,7 @@ violin2<-ggplot(mod_effect,aes(x=Misclassification,y=OR,fill=Misclassification))
   stat_summary(fun.data=mean_sdl, geom="pointrange", color="grey")+
   xlab("Strength of Misclassification")+
   ylab("Odds Ratio")+
-  ggtitle("OR Estimates under Misclassification of Transgender Individuals with TRUE OR=3")
+  ggtitle("OR Estimates under Misclassification, TRUE OR=3")
 
 violin3<-ggplot(strong_effect,aes(x=Misclassification,y=OR,fill=Misclassification))+
   theme_minimal()+
@@ -313,14 +333,27 @@ violin3<-ggplot(strong_effect,aes(x=Misclassification,y=OR,fill=Misclassificatio
   stat_summary(fun.data=mean_sdl, geom="pointrange", color="grey")+
   xlab("Strength of Misclassification")+
   ylab("Odds Ratio")+
-  ggtitle("OR Estimates under Misclassification of Transgender Individuals with TRUE OR=5")
+  ggtitle("OR Estimates under Misclassification, TRUE OR=5")
 
 violin1
 violin2
 violin3
+
+# tiff("./Tables and Figures/violin1.tiff",res=200,units="in",height=4,width=6)
+# violin1
+# dev.off()
+# 
+# tiff("./Tables and Figures/violin2.tiff",res=200,units="in",height=4,width=6)
+# violin2
+# dev.off()
+#  
+#  tiff("./Tables and Figures/violin3.tiff",res=200,units="in",height=4,width=6)
+# violin3
+# dev.off()
 ```
+In the violin plots above, the horizontal red line indicates the true OR, and the vertical gray lines indicate standard deviations of the estimates for the corresponding distribution, with the gray dot indicating the mean. Clearly, as the misclassification probability increases, the bias of the distribution of the estimated OR also increases, with the estimates being biased toward the null hypothesis (underestimated). 
 
 ### Conclusion
 
-Studies using EHR and administrative claims data to estimate transgender health inequities are growing in popularity. These studies have the potential to set policy agendas on the institutional level because of their large size when using local EHRs and on the national level when using large claims databases, because of their regional diversity. Therefore, these studies are high priority and should continue to expand the scientific record and provide more comprehensive data on transgender health as we work toward achieving health equity. However, our results indicate that comparisons between transgender and cisgender groups using proxy measures subject to misclassification are biased and must be interpreted carefully.Specifically, such studies are most suited for identifying strong associations but may lead to false negatives with moderate or mild associations. Further, the associations that are captured are underestimated under misclassification, so results from such studies must be interpreted with that limitation. Given the condition of misclassification, EHR- and claims- data based studies should be viewed as screening tools for only the most disparate health outcomes between transgender and cisgender populations, and researchers should not deprioritize health outcomes with null findings based on these data alone.
+Studies using EHR and administrative claims data to estimate transgender health inequities are growing in popularity. These studies have the potential to set policy agendas on the institutional level because of their large size when using local EHRs and on the national level when using large claims databases, because of their regional diversity. Therefore, these studies are high priority and should continue to expand the scientific record and provide more comprehensive data on transgender health as we work toward achieving health equity. However, our results indicate that comparisons between transgender and cisgender groups using proxy measures subject to misclassification are biased and must be interpreted carefully. Specifically, such studies are most suited for identifying strong associations but may lead to false negatives with moderate or mild associations. Further, the associations that are captured are underestimated under misclassification, so results from such studies must be interpreted with that limitation. Given the condition of misclassification, EHR- and claims- data based studies should be viewed as screening tools for only the most disparate health outcomes between transgender and cisgender populations, and researchers should not deprioritize health outcomes with null findings based on these data alone.
 

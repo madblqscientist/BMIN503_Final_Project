@@ -1,18 +1,13 @@
 # BMIN503/EPID600 Final Project
 
-This repository contains templates for your final written report and GitHub repository. Follow the instructions below to clone this repository, and then turn in your final project's code via a pull request to this repository.
+This repository contains elements of the Final Project for EPID 600 by Elle Lett. This project is a  simulation study on misclassification of transgender individuals in EHR and administrative claims data. The goal is to estimate bias of association measures comparing health outcomes across cisgender and transgender groups secondary to misclassification. 
 
-1. To start, **fork** this BMIN503_Final_Project repository.
-1. **Clone** the forked repository to your computer.
-1. Modify the files provided, add your own, and **commit** changes to complete your final project.
-1. **Push**/sync the changes up to your GitHub account.
-1. Create a **pull request** on this, the original BMIN503_Final_Project, repository to turn in your final project.
+The content of the Repository include. 
 
-Follow the instructions [here][forking] if you are unsure what the above steps mean.
+1. An RMarkdown file that includes the code for simulating the data, and analysis, as well as the project write-up.
+2. An HTML file that renders the RMarkdown file to a final report.
+3. An RData file that stores the results of the simulation study.
+4. The Rproject file corresponding to this project.
+5. This README.md file. 
 
-DUE DATE FOR FINAL VERSION: 12/11/20 11:59PM. This is a hard deadline. Turn in whatever you have by this date.
-
-
-<!-- Links -->
-[forking]: https://guides.github.com/activities/forking/
 
